@@ -1,0 +1,286 @@
+---
+title: "Melbourne Housing Market"
+subtitle: "Intro Data Science"
+author: "Team 2"
+date: "`r Sys.Date()`"
+output: ioslides_presentation
+---
+
+```{r basic, include=F}
+# use this function to conveniently load libraries and work smoothly with knitting
+# can add quietly=T option to the require() function
+# the loadPkg function essentially replaced/substituted two functions install.packages() and library() in one step.
+loadPkg = function(x) { if (!require(x,character.only=T, quietly =T)) { install.packages(x,dep=T,repos="http://cran.us.r-project.org"); if(!require(x,character.only=T)) stop("Package not found") } }
+
+# unload/detact package when done using it
+unloadPkg = function(pkg, character.only = FALSE) { 
+  if(!character.only) { pkg <- as.character(substitute(pkg)) } 
+  search_item <- paste("package", pkg,sep = ":") 
+  while(search_item %in% search()) { detach(search_item, unload = TRUE, character.only = TRUE) } 
+}
+```
+
+```{r setup, include=FALSE}
+# some of common options (and the defaults) are: 
+# include=T, eval=T, echo=T, results='hide'/'asis'/'markup',..., collapse=F, warning=T, message=T, error=T, cache=T, fig.width=6, fig.height=4, fig.dim=c(6,4) #inches, fig.align='left'/'center','right', 
+# knitr::opts_chunk$set(warning = F, results = "markup", message = F)
+knitr::opts_chunk$set(warning = F, results = "hide", message = F)
+# knitr::opts_chunk$set(include = F)
+knitr::opts_chunk$set(echo = F)
+options(scientific=T, digits = 3) 
+# options(scipen=9, digits = 3) 
+# ‘scipen’: integer. A penalty to be applied when deciding to print numeric values in fixed or exponential notation.  Positive values bias towards fixed and negative towards scientific notation: fixed notation will be preferred unless it is more than ‘scipen’ digits wider.
+# use scipen=999 to prevent scientific notation at all times
+
+loadPkg("leaps")
+loadPkg("ggplot2")
+loadPkg("gridExtra")
+
+data.full <- read.csv("melb_data.csv")
+```
+
+```{r xkablesummary}
+loadPkg("xtable")
+loadPkg("kableExtra")
+loadPkg("stringi")
+
+xkabledply = function(modelsmmrytable, title="Table", digits = 4, pos="left", bso="striped", wide=FALSE) { 
+  #' Combining base::summary, xtable, and kableExtra, to easily display model summary. 
+  #' wrapper for the base::summary function on model objects
+  #' Can also use as head for better display
+  #' ELo 202004 GWU DATS
+  #' version 1.2
+  #' @param modelsmmrytable This can be a generic table, a model object such as lm(), or the summary of a model object summary(lm()) 
+  #' @param title Title of table. 
+  #' @param digits Number of digits to display
+  #' @param pos Position of table, c("left","center","right") 
+  #' @param bso bootstrap_options = c("basic", "striped", "bordered", "hover", "condensed", "responsive")
+  #' @param wide print table in long (FALSE) format or wide (TRUE) format
+  #' @return HTML table for display
+  #' @examples
+  #' library("xtable")
+  #' library("kableExtra")
+  #' xkabledply( df, title="Table testing", pos="left", bso="hover" )
+  #' xkabledply( ISLR::Hitters[1:5,] )
+  if (wide) { modelsmmrytable <- t(modelsmmrytable) }
+  modelsmmrytable %>%
+    xtable() %>% 
+    kable(caption = title, digits = digits) %>%
+    kable_styling(bootstrap_options = bso, full_width = FALSE, position = pos)
+}
+
+xkabledplyhead = function(df, rows=5, title="Head", digits = 4, pos="left", bso="striped") { 
+  xkabledply(df[1:rows, ], title, digits, pos, bso, wide=FALSE)
+}
+
+xkabledplytail = function(df, rows=5, title="Tail", digits = 4, pos="left", bso="striped") { 
+  trows = nrow(df)
+  xkabledply(df[ (trows-rows+1) : trows, ], title, digits, pos, bso, wide=FALSE)
+}
+
+xkablesummary = function(df, title="Table: Statistics summary.", digits = 4, pos="left", bso="striped") { 
+  #' Combining base::summary, xtable, and kableExtra, to easily display numeric variable summary of dataframes. 
+  #' ELo 202004 GWU DATS
+  #' version 1.2
+  #' @param df The dataframe.
+  #' @param title Title of table. 
+  #' @param digits Number of digits to display
+  #' @param pos Position of table, c("left","center","right") 
+  #' @param bso bootstrap_options = c("basic", "striped", "bordered", "hover", "condensed", "responsive")
+  #' @return The HTML summary table for display, or for knitr to process into other formats 
+  #' @examples
+  #' xkablesummary( faraway::ozone )
+  #' xkablesummary( ISLR::Hitters, title="Five number summary", pos="left", bso="hover"  )
+  
+  s = summary(df) %>%
+    apply( 2, function(x) stringr::str_remove_all(x,c("Min.\\s*:\\s*","1st Qu.\\s*:\\s*","Median\\s*:\\s*","Mean\\s*:\\s*","3rd Qu.\\s*:\\s*","Max.\\s*:\\s*")) ) %>% # replace all leading words
+    apply( 2, function(x) stringr::str_trim(x, "right")) # trim trailing spaces left
+  
+  colnames(s) <- stringr::str_trim(colnames(s))
+  
+  if ( dim(s)[1] ==6 ) { rownames(s) <- c('Min','Q1','Median','Mean','Q3','Max') 
+  } else if ( dim(s)[1] ==7 ) { rownames(s) <- c('Min','Q1','Median','Mean','Q3','Max','NA') }
+  
+  xkabledply(s, title=title, digits = digits, pos=pos, bso=bso )
+}
+
+xkablevif = function(model, title="VIFs of the model", digits = 3, pos="left", bso="striped", wide=TRUE) { 
+  #' Combining faraway::vif, xtable, and kableExtra, to easily display numeric summary of VIFs for a model. 
+  #' ELo 202004 GWU DATS
+  #' version 1.2
+  #' @param model The lm or compatible model object.
+  #' @param title Title of table. 
+  #' @param digits Number of digits to display
+  #' @param pos Position of table, c("left","center","right") 
+  #' @param bso bootstrap_options = c("basic", "striped", "bordered", "hover", "condensed", "responsive")
+  #' @param wide print table in long (FALSE) format or wide (TRUE) format
+  #' @return The HTML summary table of the VIFs for a model for display, or for knitr to process into other formats 
+  #' @examples
+  #' xkablevif( lm(Salary~Hits+RBI, data=ISLR::Hitters, wide=T ) )
+  
+  vifs = table( names(model$coefficients)[2:length(model$coefficients)] ) # remove intercept to set column names
+  vifs[] = faraway::vif(model) # set the values
+  if (wide) { vifs <- t(vifs) }
+  xkabledply( vifs, title=title, digits = digits, pos=pos, bso=bso )
+}
+```
+
+
+
+
+
+
+
+## R Markdown
+
+This is an R Markdown presentation. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document.
+
+## Slide with Bullets
+
+- Bullet 1
+- Bullet 2
+- Bullet 3
+
+
+## Selling Price
+
+```{r price_data}
+
+
+
+# 
+# p1 <- ggplot(data.full, aes(x=Price)) + 
+#   geom_histogram(fill="blue", color="black") +
+#   labs(x="Price (AUS$)", y="Frequency") + 
+#   scale_x_continuous(labels = scales::comma) +
+#   theme(aspect.ratio=1)
+# 
+# p2 <- ggplot(data.full, aes(y=Price)) + 
+#   geom_boxplot(fill="blue") +
+#   labs(y="Price (AUS$)") + 
+#   scale_y_continuous(labels = scales::comma) +
+#   theme(axis.title.x=element_blank(),
+#         axis.text.x=element_blank(),
+#         axis.ticks.x=element_blank(),
+#         aspect.ratio=1) 
+# 
+# p3 <- ggplot(data.full, aes(sample=Price)) + 
+#   stat_qq(color="blue") + 
+#   stat_qq_line() + 
+#   labs(y="Price (AUS$)", x="Theoretical") +
+#   scale_y_continuous(labels = scales::comma) +
+#   theme(aspect.ratio=1)
+# 
+# 
+# grid.arrange(p1, p2, p3, nrow=1)
+
+
+
+
+layout(matrix(c(1,2,3), 1,3))
+hist(data.full$Price, col = "blue", xlab="Price(AUS$)", main=NULL)
+boxplot(data.full$Price, col = "red", ylab="Price(AUS$)")
+qqnorm(data.full$Price, col = "dark green", ylab="Price(AUS$)")
+qqline(data.full$Price)
+
+```
+
+
+## Price by Region
+
+```{r price_region}
+
+ggplot(data.full, 
+       aes(x=Regionname, y=Price, fill=Regionname)) + 
+  geom_boxplot() +
+  theme(axis.title.x=element_blank(),
+        axis.text.x=element_blank(),
+        axis.ticks.x=element_blank()) + 
+  labs(y="Price (AUS$)") + 
+  scale_y_continuous(labels = scales::comma)
+
+```
+
+## Price by Number of Rooms
+
+```{r price_rooms}
+
+ggplot(subset(data.full, Rooms<10), 
+       aes(x=factor(Rooms), y=Price, fill=factor(Rooms))) + 
+  geom_boxplot() + 
+  labs(x="Number of Rooms", y="Price (AUS$)") + 
+  scale_y_continuous(labels = scales::comma) +
+  guides(fill=FALSE)
+
+```
+
+
+## Price by Type of Home
+
+```{r price_type}
+
+ggplot(data.full, 
+       aes(x=factor(Type), y=Price, fill=Type)) + 
+  geom_boxplot() + 
+  labs(y="Price (AUS$)") + 
+  scale_y_continuous(labels = scales::comma) +
+  guides(fill=FALSE) + 
+  scale_x_discrete(name="Type of Home", labels=c("House", "Townhouse", "Apartment"))
+
+```
+
+
+
+## Price by Region and Type
+
+if we keep this, consider making the legend colors standardized so region 
+same no matter the chart
+
+```{r price_type_region}
+
+p1 <- ggplot(subset(data.full, Type=="h"), 
+       aes(x=Regionname, y=Price, fill=Regionname)) + 
+  geom_boxplot() + 
+  labs(title="Houses", y="Price (AUS$)") + 
+  theme(axis.title.x=element_blank(),
+        axis.text.x=element_blank(),
+        axis.ticks.x=element_blank())+
+  scale_y_continuous(labels = scales::comma) +
+  guides(fill=FALSE)
+
+
+
+
+p2<- ggplot(subset(data.full, Type=="t"), 
+       aes(x=Regionname, y=Price, fill=Regionname)) + 
+  geom_boxplot() + 
+  labs(title="Townhouses", y=NULL) + 
+  theme(axis.title.x=element_blank(),
+        axis.text.x=element_blank(),
+        axis.ticks.x=element_blank())+
+  scale_y_continuous(labels = scales::comma) +
+  guides(fill=FALSE)
+
+
+
+p3 <- ggplot(subset(data.full, Type=="u"), 
+       aes(x=Regionname, y=Price, fill=Regionname)) + 
+  geom_boxplot() + 
+  labs(title="Apartments", y=NULL) + 
+  theme(axis.title.x=element_blank(),
+        axis.text.x=element_blank(),
+        axis.ticks.x=element_blank()) +
+  scale_y_continuous(labels = scales::comma)+
+  guides(fill=FALSE)
+
+grid.arrange(p1,p2,p3, nrow=1)
+
+```
+
+
+
+
+
+
