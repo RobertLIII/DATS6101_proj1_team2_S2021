@@ -44,10 +44,10 @@ set.seed(17)
 data.full <- read.csv("melb_data.csv")
 
 # create train and test data
-samps <- sample(nrow(data.full), nrow(data.full)*0.7)
+samps <- read.csv("sample.txt", sep=" ")
 
-data.train <- data.full[(samps),]
-data.test <- data.full[(-samps),]
+data.train <- data.full[(samps$x),]
+data.test <- data.full[(-samps$x),]
 
 ```
 
@@ -255,16 +255,58 @@ colnames(data.fixedname)[colnames(data.fixedname) %in% numerics] <- numerics.fix
   - Numeric: `r length(numerics)`
   - Categorical: `r nvar - length(numerics)`
 
-
-## Summary of Select Numeric Variables
-
-```{r price_summary}
-
-summ <- summary(data.full[c("Price", "Rooms", "BuildingArea")])
+## The Variables
+```{r vars, results="asis"}
+var.names <- c(names(data.full))
 
 ```
 
-`r xkablesummary(data.full[c("Price", "Rooms", "BuildingArea")], title=NULL)`
+Rooms: Number of rooms
+
+Price: Price (AUS$)
+
+Method: Method of sale - 5 categories
+
+Type:  House, Unit, Townhouse - 3 categories
+
+SellerG: Real Estate Agent - 268 categories
+
+Date: Date sold
+
+Distance: Distance from Central Business District
+
+Regionname: Region name - 8 categories
+
+Propertycount: Number of properties that exist in the suburb
+
+## More Variables
+
+Bedroom2 : Number of Bedrooms 
+
+Bathroom: Number of Bathrooms
+
+Car: Number of carspots
+
+Landsize: Land Size
+
+BuildingArea: Building Size
+
+YearBuilt: Year home built
+
+CouncilArea: Governing council for the area - 34 categories
+
+Lattitude, Longtitude: GPS location
+
+Suburb: Suburb name - 314 categories
+
+
+## Summary of Price Statistics
+
+Mean: `r dollar(mean(data.full$Price))`
+
+SD: `r sqrt(var(data.full$Price))`
+
+`r xkablesummary( as.data.frame(data.full$Price), title=NULL)`
 
 ## Select Data Pairs
 ```{r pairs}
@@ -304,33 +346,6 @@ ggplot(data.full) +
 ## Selling Price
 
 ```{r price_data_plots}
-
-
-# 
-# p1 <- ggplot(data.full, aes(x=Price)) + 
-#   geom_histogram(fill="blue", color="black") +
-#   labs(x="Price (AUS$)", y="Frequency") + 
-#   scale_x_continuous(labels = scales::comma) +
-#   theme(aspect.ratio=1)
-# 
-# p2 <- ggplot(data.full, aes(y=Price)) + 
-#   geom_boxplot(fill="blue") +
-#   labs(y="Price (AUS$)") + 
-#   scale_y_continuous(labels = scales::comma) +
-#   theme(axis.title.x=element_blank(),
-#         axis.text.x=element_blank(),
-#         axis.ticks.x=element_blank(),
-#         aspect.ratio=1) 
-# 
-# p3 <- ggplot(data.full, aes(sample=Price)) + 
-#   stat_qq(color="blue") + 
-#   stat_qq_line() + 
-#   labs(y="Price (AUS$)", x="Theoretical") +
-#   scale_y_continuous(labels = scales::comma) +
-#   theme(aspect.ratio=1)
-# 
-# 
-# grid.arrange(p1, p2, p3, nrow=1)
 
 
 layout(matrix(c(1,2,3), 1,3))
@@ -382,7 +397,7 @@ ggplot(data.full,
 
 
 
-## Price by Number of Rooms
+## Price by Number of Rooms (<10 Rooms)
 
 ```{r price_rooms}
 
@@ -415,11 +430,33 @@ ggplot(data.full,
 ```
 
 
+## Test of Independence by Group (Pearson $\chi^2$)
+### Type, Rooms, Regionname, SellerG
+
+```{r type_person}
+
+data.full$Price.cuts <- as.character(cut(data.full$Price, 10))
+data.full$Price.cuts[data.full$Price > 3650000] <- "(3.65e+06,9.01e+06]"
+
+data.full$Price.cuts <- as.factor(data.full$Price.cuts)
+
+
+type.chi <- chisq.test(data.full$Type, data.full$Price.cut)
+rooms.chi <- chisq.test(subset(data.full, data.full$Rooms<10)$Rooms, subset(data.full, data.full$Rooms<10)$Price.cut)
+region.chi <- chisq.test(data.full$Regionname, data.full$Price.cut)
+
+seller.chi <- chisq.test(data.full$SellerG, data.full$Price.cut)
+```
+
+$H_0$: All means equal by group 
+
+
+All reject $H_0$ with p-value$<2\times 10^{-16}$
+
+
 
 ## Price by Region and Type
 
-if we keep this, consider making the legend colors standardized so region 
-same no matter the chart
 
 ```{r price_type_region}
 
@@ -455,7 +492,7 @@ p3 <- ggplot(subset(data.full, Type=="u"),
   theme(axis.title.x=element_blank(),
         axis.text.x=element_blank(),
         axis.ticks.x=element_blank()) +
-  scale_y_continuous(labels = scales::comma)+
+  scale_y_continuous(labels = scales::comma) +
   guides(fill=FALSE)
 
 grid.arrange(p1,p2,p3, nrow=1)
@@ -473,13 +510,6 @@ mod <- lm(Price ~ Rooms + Landsize
 
 mod.vifs <- vif(mod)
 
-# ggplot(data.frame(mod.vifs), aes(x=1:length(mod.vifs), y=mod.vifs)) +
-#   geom_point() +
-#   labs(title="VIF Values for First Model",
-#        y="VIF") + 
-#  scale_x_discrete(name="Variable", labels=names(mod.vifs))
-# 
-
 plot(mod.vifs,
      xlab="", ylab="VIF",
      xaxt='n',
@@ -490,8 +520,6 @@ points(which.max(mod.vifs), max(mod.vifs), pch=23, col="red", bg="red")
 text(which.max(mod.vifs), max(mod.vifs)-1, label=names(mod$coefficients[which.max(mod.vifs)+1]))
 
 ```
-
-
 
 
 ## Remove the Variable with Highest VIF
@@ -649,6 +677,11 @@ plot(mod4, which=5, sub.caption="Model 4 without Outliers")
 ```
 
 
+## Proposed Model 
+
+![ ](/Users/robertlong/Documents/Education/Math/Graduate/Data Science - D6101/Midterm_project/images/proposed_model.png)
+
+
 ## Testing $R^2$
 
 ```{r lm4_pred}
@@ -688,6 +721,10 @@ mod6 <- lm(log(Price) ~ Rooms + Car
           + factor(Regionname) , data=data.train[!(rownames(data.train) %in% c("13246","2561", "1589")),])
 
 plot(mod6, which=1, sub.caption="Model 4 with Log(Price) Transformation")
+
+
+y.trans.pred<-predict(mod6)
+
 ```
 
 ## Transform Data - Normality
@@ -705,7 +742,7 @@ plot(mod6, which=2, sub.caption="Model 4 with Log(Price) Transformation")
 
 ## Future Work
 - Further explore log transformation
-- Consider GLM
+- Consider GLM with log link
 - What to do about factors with many levels (100's)? 
 - Missing data
 - Improve Prediction
