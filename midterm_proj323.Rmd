@@ -299,6 +299,9 @@ Lattitude, Longtitude: GPS location
 
 Suburb: Suburb name - 314 categories
 
+## Goals
+1.	Understand which attributes of a home and its sale determine final sale price
+2.	Attempt to build a reasonable model for inference and/or prediction for final sale price
 
 ## Summary of Price Statistics
 
