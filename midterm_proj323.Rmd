@@ -554,7 +554,7 @@ text(which.max(mod2.vifs)-3, max(mod2.vifs)-0.5, label=names(mod2$coefficients[w
 mod2.summ <-summary(mod2)
 plot(mod2.summ$coefficients[,"Pr(>|t|)"],
      xlab="", ylab="p-value",
-     xaxt='n',
+     xaxt='n',                 
      main="p-values for Second Model")
 abline(h=0.05, col="blue")
 
@@ -579,9 +579,9 @@ mod3 <-  lm(Price ~ Rooms + Landsize
           + factor(Regionname)*Rooms , data=data.train)
 
 
-mod3.summ <-summary(mod3)
+mod3.summ <-summary(mod3)                                                                                          
 plot(mod3.summ$coefficients[,"Pr(>|t|)"],
-     xlab="", ylab="p-value",
+     xlab="", ylab="p-value",                                                                                              
      xaxt='n',
      main="p-values for Model with Interaction")
 abline(h=0.05, col="blue")
@@ -604,7 +604,7 @@ legend("topright",
 
 ```{r lm4, results='asis'}
 
-mod4 <-  lm(Price ~ Rooms
+mod4 <-  lm(Price ~ Rooms                                                                                
           + Distance  + Bathroom + Car + BuildingArea
           + Lattitude + Longtitude + Propertycount
           + factor(Regionname) , data=data.train)
@@ -613,7 +613,7 @@ mod4 <-  lm(Price ~ Rooms
 
 mod4.vifs <- vif(mod4)
 
-plot(mod4.vifs,
+plot(mod4.vifs,                                               
      xlab="", ylab="VIF",
      xaxt='n',
      main="VIF Values for Forth Model")
@@ -633,7 +633,7 @@ plot(mod4.summ$coefficients[,"Pr(>|t|)"],
      xlab="", ylab="p-value",
      xaxt='n',
      main="p-values for Second Model")
-abline(h=0.05, col="blue")
+abline(h=0.05, col="blue")                                                  
 
 points(10:mod4$rank, mod4.summ$coefficients[,"Pr(>|t|)"][10:mod4$rank], pch=21, col="blue", bg="blue")
 
@@ -647,7 +647,7 @@ legend("topright",
 
 ```
 
-## Resdidual Analysis - Homogeneity? No
+## Resdidual Analysis - Homogeneity? No                                                              
 ```{r lm4_redids}
 
 plot(mod4, which=1, sub.caption="Model 4")
@@ -656,7 +656,7 @@ plot(mod4, which=1, sub.caption="Model 4")
 ## Resdidual Analysis - Normal? Not Quite
 ```{r lm4_qq}
 
-plot(mod4, which=2, sub.caption="Model 4")
+plot(mod4, which=2, sub.caption="Model 4")                                                                                                                                                      
 ```
 
 ## Resdidual Analysis - Influence? Yes
@@ -669,7 +669,7 @@ plot(mod4, which=5, sub.caption="Model 4")
 
 ## Remove Influence Points
 ```{r lm5}
-
+                               
 # drop drop influence points
 mod5 <- mod4 <-  lm(Price ~ Rooms
           + Distance  + Bathroom + Car + BuildingArea
@@ -679,7 +679,7 @@ mod5 <- mod4 <-  lm(Price ~ Rooms
 plot(mod4, which=5, sub.caption="Model 4 without Outliers")
 ```
 
-
+                                                                                                       
 ## Proposed Model 
 
 ![ ](/Users/robertlong/Documents/Education/Math/Graduate/Data Science - D6101/Midterm_project/images/proposed_model.png)
@@ -688,8 +688,8 @@ plot(mod4, which=5, sub.caption="Model 4 without Outliers")
 ## Testing $R^2$
 
 ```{r lm4_pred}
-y.pred <- predict(mod4, data.test)
-y.test <- data.test$Price
+y.pred <- predict(mod4, data.test)                                        
+y.test <- data.test$Price                          
 
 diff.sq = (y.pred - y.test)^2 
 
@@ -704,8 +704,8 @@ r2 <- function(y.predict, y.actual=y.test){
   
   return(rSq)
 }
-
-r.2 <- r2(y.pred[keeps], y.test[keeps])
+    
+r.2 <- r2(y.pred[keeps], y.test[keeps])                                           
 
 ```
 
@@ -713,7 +713,7 @@ $$ \begin{equation} R^2 = 1- \dfrac{RSS}{TSS} \end{equation}=0.441$$
 
 
 
-## Transform Data - Homogeneity
+## Transform Data - Homogeneity                                                    
 
 ```{r lm5_trans}
 # log transform
@@ -730,7 +730,7 @@ y.trans.pred<-predict(mod6)
 
 ```
 
-## Transform Data - Normality
+## Transform Data - Normality                                                               
 ```{r lm5_trans_qq}
 # log transform
 # drop drop influence points
@@ -744,7 +744,7 @@ plot(mod6, which=2, sub.caption="Model 4 with Log(Price) Transformation")
 
 
 ## Future Work
-- Further explore log transformation
+- Further explore log transformation                 
 - Consider GLM with log link
 - What to do about factors with many levels (100's)? 
 - Missing data
