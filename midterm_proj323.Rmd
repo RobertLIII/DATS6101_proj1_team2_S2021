@@ -131,15 +131,15 @@ xkablevif = function(model, title="VIFs of the model", digits = 3, pos="left", b
   #' @examples
   #' xkablevif( lm(Salary~Hits+RBI, data=ISLR::Hitters, wide=T ) )
 
-  df <- data.frame(vif(model))
+  df <- data.frame(vif(model))                            
   names(df) <- "VIF"
-  
+     
   if (wide) { df <- t(df) }
-  xkabledply(df, title=title, digits = digits, pos=pos, bso=bso )
+  xkabledply(df, title=title, digits = digits, pos=pos, bso=bso )    
 }
 ```
 
-```{r outlierKD2}
+```{r outlierKD2}       
 # Fix outliers
 outlierKD2 <- function(df, var, rm=FALSE, boxplt=FALSE, histogram=TRUE, qqplt=FALSE, variable_name=deparse(substitute(var))) { 
     #' Original outlierKD functino by By Klodian Dhana,
@@ -147,22 +147,22 @@ outlierKD2 <- function(df, var, rm=FALSE, boxplt=FALSE, histogram=TRUE, qqplt=FA
     #' Modified to have third argument for removing outliers instead of interactive prompt, 
     #' and after removing outlier, original df will not be changed. The function returns the a df, 
     #' which can be saved as original df name if desired.
-    #' Also added QQ-plot in the output, with options to show/hide boxplot, histogram, qqplot.
+    #' Also added QQ-plot in the output, with options to show/hide boxplot, histogram, qqplot.                                 
     #' Check outliers, and option to remove them, save as a new dataframe. 
-    #' @param df The dataframe.
+    #' @param df The dataframe.                                          
     #' @param var The variable in the dataframe to be checked for outliers
-    #' @param rm Boolean. Whether to remove outliers or not.
+    #' @param rm Boolean. Whether to remove outliers or not.          
     #' @param boxplt Boolean. Whether to show the boxplot, before and after outliers removed.
     #' @param histogram Boolean. Whether to show the histogram, before and after outliers removed.
-    #' @param qqplt Boolean. Whether to show the qqplot, before and after outliers removed.
+    #' @param qqplt Boolean. Whether to show the qqplot, before and after outliers removed.                                   
     #' @param variable_name String. Variable name formatted for title.
-    #' @return The dataframe with outliers replaced by NA if rm==TRUE, or df if nothing changed
-    #' @examples
+    #' @return The dataframe with outliers replaced by NA if rm==TRUE, or df if nothing changed               
+    #' @examples    
     #' outlierKD2(mydf, height, FALSE, TRUE, TRUE, TRUE)
     #' mydf = outlierKD2(mydf, height, TRUE, TRUE, TRUE, TRUE)
     #' mydfnew = outlierKD2(mydf, height, TRUE)
     dt = df # duplicate the dataframe for potential alteration
-    var_name <- eval(substitute(var),eval(dt))
+    var_name <- eval(substitute(var),eval(dt))     
     na1 <- sum(is.na(var_name))
     m1 <- mean(var_name, na.rm = T)
     par(mfrow=c(2, boxplt+histogram+qqplt), oma=c(0,0,3,0))
@@ -208,16 +208,16 @@ outlierKD2 <- function(df, var, rm=FALSE, boxplt=FALSE, histogram=TRUE, qqplt=FA
 
 ```{r create_ggplot_labes}
 # factor level counts for legend
-counts <- function(variable){
-  
+counts <- function(variable){                      
+                                  
   table.temp <- table(variable)
-  regions <- c(rep(0, length(table.temp)))
+  regions <- c(rep(0, length(table.temp)))                                            
   
   for (i in 1:length(table.temp)){
     name.new <- paste(names(table.temp[i]), table.temp[[i]], sep=" - ")
     regions[i] <- name.new
 }
-  
+                                     
   return(regions)
 }
 
@@ -227,7 +227,7 @@ counts <- function(variable){
 
 ## The Melbourne Housing Snapshot Dataset
 
-```{r data_feats}
+```{r data_feats}                                                                                                                                                                                 
 
 nvar <- ncol(data.full)
 nObs <- nrow(data.full)
@@ -235,26 +235,26 @@ nObs <- nrow(data.full)
 numerics <- c("Rooms", "Price", "Distance", "Bedroom2", "Bathroom", 
               "Car", "Landsize", "BuildingArea", "YearBuilt", 
               "Lattitude", "Longtitude",
-              "Propertycount")
+              "Propertycount")                             
 
 numerics.fixed <- c("Rooms", "Price", "Distance", "Bedrooms", "Bathrooms", 
               "Car Parks", "Land size", "Building Area", "Year Built", 
               "Lattitude", "Longtitude",
               "Property Count")
-
-data.fixedname <- data.full
+                       
+data.fixedname <- data.full                                     
 colnames(data.fixedname)[colnames(data.fixedname) %in% numerics] <- numerics.fixed
 
 ```
 
 - Home Sales in 2017
-  - Location
+  - Location                              
   - Construction
   - Sale
 - Variables: `r nvar`
   - Numeric: `r length(numerics)`
   - Categorical: `r nvar - length(numerics)`
-
+                                                           
 ## The Variables
 ```{r vars, results="asis"}
 var.names <- c(names(data.full))
@@ -262,16 +262,16 @@ var.names <- c(names(data.full))
 ```
 
 Rooms: Number of rooms
-
+                                                                                          
 Price: Price (AUS$)
 
-Method: Method of sale - 5 categories
+Method: Method of sale - 5 categories      
 
-Type:  House, Unit, Townhouse - 3 categories
+Type:  House, Unit, Townhouse - 3 categories   
 
-SellerG: Real Estate Agent - 268 categories
+SellerG: Real Estate Agent - 268 categories             
 
-Date: Date sold
+Date: Date sold                                                                                 
 
 Distance: Distance from Central Business District
 
@@ -280,14 +280,14 @@ Regionname: Region name - 8 categories
 Propertycount: Number of properties that exist in the suburb
 
 ## More Variables
+                                                                    
+Bedroom2 : Number of Bedrooms                              
+                                                        
+Bathroom: Number of Bathrooms                                                                                                    
 
-Bedroom2 : Number of Bedrooms 
+Car: Number of carspots                                                                                                   
 
-Bathroom: Number of Bathrooms
-
-Car: Number of carspots
-
-Landsize: Land Size
+Landsize: Land Size                             
 
 BuildingArea: Building Size
 
@@ -297,7 +297,7 @@ CouncilArea: Governing council for the area - 34 categories
 
 Lattitude, Longtitude: GPS location
 
-Suburb: Suburb name - 314 categories
+Suburb: Suburb name - 314 categories                                            
 
 ## Goals
 1.	Understand which attributes of a home and its sale determine final sale price
