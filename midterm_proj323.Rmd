@@ -1,10 +1,24 @@
 ---
-title: "Melbourne Housing Market"
+title: "Melbourne Housing Market-Paper1"
 subtitle: "Intro Data Science"
 author: "Team 2"
 date: "`r Sys.Date()`"
 output: ioslides_presentation
 ---
+# 1 Introduction
+This paper discusses our project using data on housing prices in Melbourne in 2017.
+The establishment of a real estate price prediction system is a key task for the healthy development of the current real estate industry. 
+Having a simple predictive and inferential method to model housing prices helps commerce determine fair prices and allows governments to determine property taxes. 
+This project aims to learn how different factors may affect home sales price by building linear models. 
+Although data that will be utilized was collected in Melbourne, Australia in 2017, the concept that location and home attributes correlate with housing prices could reasonably apply broadly and internationally. 
+
+The following questions are the main subjects which this project focuses on:
+
+1. Understand if housing prices in Melbourne, Australia can be predicted using this dataset.
+2. Determine what variables have the greatest impact on housing price.
+3. Analyze the impacts of location, seller, and construction attributes of homes on the housing market in Melbourne, Australia. 
+
+
 
 ```{r basic, include=F}
 # use this function to conveniently load libraries and work smoothly with knitting
@@ -222,7 +236,11 @@ counts <- function(variable){
 }
 
 ```
-
+# 2 Exploratory Data Analysis (EDA)
+The following are excerpts and graphs from our exploratory data analysis. 
+This part of the project familiarizes the reader with our dataset's attributes as well as lays
+the foundation for the variables will include in our linear model. 
+The results of our EDA will also inform the future direction of the project.
 
 
 ## The Melbourne Housing Snapshot Dataset
@@ -502,7 +520,39 @@ grid.arrange(p1,p2,p3, nrow=1)
 
 ```
 
-## First Attempt at Linear Model
+## Transform Data - Homogeneity                                                    
+
+```{r lm5_trans}
+# log transform
+# drop drop influence points
+mod6 <- lm(log(Price) ~ Rooms + Car
+          + Distance   + Car + BuildingArea
+          + Lattitude + Longtitude + Propertycount
+          + factor(Regionname) , data=data.train[!(rownames(data.train) %in% c("13246","2561", "1589")),])
+
+plot(mod6, which=1, sub.caption="Model 4 with Log(Price) Transformation")
+
+
+y.trans.pred<-predict(mod6)
+
+```
+
+## Transform Data - Normality                                                               
+```{r lm5_trans_qq}
+# log transform
+# drop drop influence points
+mod6 <- lm(log(Price) ~ Rooms + Car
+          + Distance   + Car + BuildingArea
+          + Lattitude + Longtitude + Propertycount
+          + factor(Regionname) , data=data.train[!(rownames(data.train) %in% c("13246","2561", "1589")),])
+
+plot(mod6, which=2, sub.caption="Model 4 with Log(Price) Transformation")
+```
+
+
+# 3 Linear Modelling
+
+## 3.1 First Attempt at Linear Model
 
 ```{r lm1, results='asis'}
 
@@ -525,7 +575,7 @@ text(which.max(mod.vifs), max(mod.vifs)-1, label=names(mod$coefficients[which.ma
 ```
 
 
-## Remove the Variable with Highest VIF
+## 3.2 Linear Model 2: Removed the Variable with Highest VIF
 ```{r lm2_vif, results='asis'}
 # drop Bedroom2 - keep
 mod2 <-  lm(Price ~ Rooms + Landsize
@@ -569,7 +619,7 @@ legend("topright",
        legend="Region Factor Levels")
 ```
 
-## Consider Interactions
+## 3.3 Linear Model 3: Considered Interactions
 
 ```{r lm3, results='asis'}
 #  mod 2 with rooms*region interaction -  failed model, drop interaction
@@ -600,7 +650,7 @@ legend("topright",
 ```
 
 
-## Remove Land Size
+## 3.3 Linear Model 4: Removed Land Size
 
 ```{r lm4, results='asis'}
 
@@ -646,20 +696,21 @@ legend("topright",
 
 
 ```
+# 4 Residual Analysis
 
-## Resdidual Analysis - Homogeneity? No                                                              
+## 4.1 Homogeneity? No                                                              
 ```{r lm4_redids}
 
 plot(mod4, which=1, sub.caption="Model 4")
 ```
 
-## Resdidual Analysis - Normal? Not Quite
+## 4.2 Normal? Not Quite
 ```{r lm4_qq}
 
 plot(mod4, which=2, sub.caption="Model 4")                                                                                                                                                      
 ```
 
-## Resdidual Analysis - Influence? Yes
+## 4.3 Influence? Yes
 ```{r lm4_lev}
 
 plot(mod4, which=5, sub.caption="Model 4")
@@ -680,7 +731,7 @@ plot(mod4, which=5, sub.caption="Model 4 without Outliers")
 ```
 
                                                                                                        
-## Proposed Model 
+# 5 Proposed Model 
 
 ![ ](/Users/robertlong/Documents/Education/Math/Graduate/Data Science - D6101/Midterm_project/images/proposed_model.png)
 
@@ -710,43 +761,19 @@ r.2 <- r2(y.pred[keeps], y.test[keeps])
 ```
 
 $$ \begin{equation} R^2 = 1- \dfrac{RSS}{TSS} \end{equation}=0.441$$ 
-
-
-
-## Transform Data - Homogeneity                                                    
-
-```{r lm5_trans}
-# log transform
-# drop drop influence points
-mod6 <- lm(log(Price) ~ Rooms + Car
-          + Distance   + Car + BuildingArea
-          + Lattitude + Longtitude + Propertycount
-          + factor(Regionname) , data=data.train[!(rownames(data.train) %in% c("13246","2561", "1589")),])
-
-plot(mod6, which=1, sub.caption="Model 4 with Log(Price) Transformation")
-
-
-y.trans.pred<-predict(mod6)
-
-```
-
-## Transform Data - Normality                                                               
-```{r lm5_trans_qq}
-# log transform
-# drop drop influence points
-mod6 <- lm(log(Price) ~ Rooms + Car
-          + Distance   + Car + BuildingArea
-          + Lattitude + Longtitude + Propertycount
-          + factor(Regionname) , data=data.train[!(rownames(data.train) %in% c("13246","2561", "1589")),])
-
-plot(mod6, which=2, sub.caption="Model 4 with Log(Price) Transformation")
 ```
 
 
-## Future Work
+
+# 6 Future Work
 - Further explore log transformation                 
 - Consider GLM with log link
 - What to do about factors with many levels (100's)? 
 - Missing data
 - Improve Prediction
+
+# 7 Conclusion
+
+# 8 Bibliography 
+
 
