@@ -733,7 +733,7 @@ plot(mod4, which=5, sub.caption="Model 4 without Outliers")
                                                                                                        
 # 5 Proposed Model 
 
-![ ](/Users/robertlong/Documents/Education/Math/Graduate/Data Science - D6101/Midterm_project/images/proposed_model.png)
+![ ](/images/proposed_model.png)
 
 
 ## Testing $R^2$
