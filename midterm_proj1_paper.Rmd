@@ -6,6 +6,16 @@ date: "`r Sys.Date()`"
 output: ioslides_presentation
 ---
 # 1 Introduction
+
+The buying and selling of houses has always been the most concerned issue of the people, and it is a major issue related to people's livelihood. Housing prices are an important indicator that reflects the performance of the economy. 
+Real estate developers and home buyers pay close attention to housing price fluctuations. 
+In a complete market environment, housing prices are jointly determined by demand and supply. 
+However, in the current society, housing has both residential and investment functions, making the research on housing prices very complicated. 
+To predict long-term housing prices has become an extremely complex and challenging task. The establishment of a real estate price prediction system is a key task for the healthy development of the current real estate industry. 
+However, the rapid rise in housing prices has always plagued most of the middle and low-income groups, and this has developed into a sensitive issue in people's daily life. 
+Therefore, studying the influencing factors of real estate prices and predicting them will help the people of the middle and low-income groups to choose the right time to buy a house, and it will also help the government officials understand the trend of real estate prices and regulate them. 
+Having a simple predictive and inferential method to model housing prices helps commerce determine fair prices and allows governments to determine property taxes. This project aims to learn how different factors may affect home sales price by building linear models. Although data that will be utilized was collected in Melbourne, Australia in 2017, the concept that location and home attributes correlate with housing prices could reasonably apply broadly and internationally. 
+
 This paper discusses our project using data on housing prices in Melbourne in 2017.  
 Having a simple predictive and inferential method to model housing prices helps commerce determine fair prices and allows governments to determine property taxes. 
 This project aims to learn how different factors may affect home sales price by building linear models. 
@@ -247,6 +257,8 @@ The results of our EDA will also inform the future direction of the project. We 
 
 
 ## 2.1 The Melbourne Housing Snapshot Dataset
+
+The independent variables mainly reflect the situation of the house from three dimensions: a. what type; b. quality, grade; c. quantity, area.Before EDA, the details and introduction of the existing Melbourne house data variables are as follows:
 
 ```{r data_feats}                                                                                                                                                                                 
 
@@ -765,9 +777,15 @@ $$ \begin{equation} R^2 = 1- \dfrac{RSS}{TSS} \end{equation}=0.441$$
 - Improve Prediction
 
 # 7 Conclusion
+The previous analysis did not deal with outliers, and the processing of outliers may also have a certain effect on result optimization. Through the analysis of this data set, the content of linear regression was practiced, and the final effect was not bad. For the future, some useful method can be implemented, such as further explore log transformation, consider GLM with log link, what to do about factors with many levels (100’s)? deal with missing data and improve Prediction.
+
 
 # 8 Bibliography 
 Dataset available: https://www.kaggle.com/dansbecker/melbourne-housing-snapshot
 
 Thorne,S. (2019, November 3) How the Australian Property Market Performed in 2017. Retrieved from www.openagent.com.au/blog/how-the-australian-property-market-performed-in-2017#. 
+Mansfield, E. R., & Helms, B. P. (1982). Detecting multicollinearity. The American Statistician, 36(3a), 158-160.
+Daoud, J. I. (2017, December). Multicollinearity and regression analysis. In Journal of Physics: Conference Series (Vol. 949, No. 1, p. 012009). IOP Publishing.
+ 
+
 
