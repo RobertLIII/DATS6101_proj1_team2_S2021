@@ -3,9 +3,13 @@ title: "Melbourne Housing Market-Paper1"
 subtitle: "Intro Data Science"
 author: "Team 2"
 date: "`r Sys.Date()`"
-output: ioslides_presentation
+output:
+   html_document:
+     toc: true
+     toc_float: true
+     number_section: true
 ---
-# 1 Introduction
+# Introduction
 
 The buying and selling of houses has always been the most concerned issue of the people, and it is a major issue related to people's livelihood. Housing prices are an important indicator that reflects the performance of the economy. 
 Real estate developers and home buyers pay close attention to housing price fluctuations. 
@@ -65,6 +69,7 @@ loadPkg("scales")
 loadPkg("heatmaply")
 loadPkg("Hmisc")
 loadPkg("faraway")
+loadPkg("jtools")
 
 set.seed(17)
 data.full <- read.csv("melb_data.csv")
@@ -142,7 +147,7 @@ xkablesummary = function(df, title="Table: Statistics summary.", digits = 4, pos
   xkabledply(s, title=title, digits = digits, pos=pos, bso=bso )
 }
 
-# this is wrong
+
 xkablevif = function(model, title="VIFs of the model", digits = 3, pos="left", bso="striped", wide=TRUE) { 
   #' Combining faraway::vif, xtable, and kableExtra, to easily display numeric summary of VIFs for a model. 
   #' ELo 202004 GWU DATS
@@ -248,7 +253,7 @@ counts <- function(variable){
 }
 
 ```
-# 2 Exploratory Data Analysis (EDA)
+# Exploratory Data Analysis (EDA)
 The following are excerpts and graphs from our exploratory data analysis. 
 This part of the project familiarizes the reader with our dataset's attributes as well as lays the foundation for the variables we will include in our linear model. 
 The results of our EDA will also inform the future direction of the project. We completed our EDA with the folowing goals in mind:
@@ -259,7 +264,7 @@ The results of our EDA will also inform the future direction of the project. We 
 
 
 
-## 2.1 The Melbourne Housing Snapshot Dataset
+## The Melbourne Housing Snapshot Dataset
 The independent variables mainly reflect the situation of the house from three dimensions: a. what type; b. quality, grade; c. quantity, area.Before EDA, the details and introduction of the existing Melbourne house data variables are as follows:
 
 ```{r data_feats}                                                                                                                                                                                 
@@ -290,8 +295,8 @@ colnames(data.fixedname)[colnames(data.fixedname) %in% numerics] <- numerics.fix
   - Numeric: `r length(numerics)`
   - Categorical: `r nvar - length(numerics)`
                                                            
-## 2.2 The Variables
-```{r vars, results="asis"}
+## The Variables
+```{r vars, results="markdown"}
 var.names <- c(names(data.full))
 
 ```
@@ -332,7 +337,7 @@ Lattitude, Longtitude: GPS location
 
 Suburb: Suburb name - 314 categories                                            
 
-## 2.3 Summary of Price Statistics
+## Summary of Price Statistics
 
 Mean: `r dollar(mean(data.full$Price))`
 
@@ -340,12 +345,12 @@ SD: `r sqrt(var(data.full$Price))`
 
 `r xkablesummary( as.data.frame(data.full$Price), title=NULL)`
 
-## 2.4 Select Data Pairs
+## Select Data Pairs
 ```{r pairs}
 pairs(data.full[numerics[c(2, 3, 7, 8, 12)]])
 ```
 
-## 2.5 Corrleations
+## Corrleations
 Due to the large number of feature columns in the dataset, it is difficult to grasp. Therefore, before further feature mining, take a look at which variables are highly correlated with House Price (mainly focusing on numeric variables). The result is shown as follows:
 ```{r heatmap}
 
@@ -365,7 +370,7 @@ hm <- heatmaply_cor(
 
 We can draw conclusion from the above picture that the price has a positive relationship with the type of room, but has a negative relationship with distance. And there are also strong correlations between some variables, such as Rooms and Bedrooms, Rooms and Bathrooms, Bedrooms and Bathrooms, which may cause multicollinearity. We need to pay attention to feature selection.
 
-## 2.6 Selling Price
+## Selling Price
 In order to forecast the sales price more reasonably, before making the forecast, there is a comparative analysis of its distribution. SalePrice is a predictor variable. Take a graph to see its distribution:
 
 ```{r price_data_plots}
@@ -381,7 +386,7 @@ qqline(data.full$Price)
 
 Each point of a string of numbers in the data is a certain quantile of the data. Pair these points (called sample quantile points) with the corresponding theoretical quantiles to make a scatter plot. The data obeys the normal distribution, then the graph should look like a straight line, otherwise it does not obey the normal distribution. It can be seen from the distribution diagram of selling price that selling price does not follow a normal distribution. In the case of not obeying the normal distribution, a new method should be selected to change the data to obey the normal distribution. Thus, the log operation is implemented in selling price.
 
-## 2.7 Log Selling Price
+## Log Selling Price
 
 ```{r log_price_plots}
 layout(matrix(c(1,2,3), 1,3))
@@ -399,7 +404,7 @@ Price.upper <- exp(logPrice.ttest$conf.int[2])
 
 From the Q-Q plot of log selling price, we could draw that the graph looks like a straight line. Thus, log selling price obeys normal distribution.
 
-## 2.8 Map of Melbourne Sales
+## Map of Melbourne Sales
 
 ```{r price_region_qq}
 
@@ -414,7 +419,7 @@ It can be seen from the figure that the sales areas are mainly concentrated in E
 
 In the conclusion of the correlation analysis, the price is related to the region. In other words, the sale price of the house is also different in different regions. In addition, the price is also related to the number of rooms; the more rooms there are, the higher the price will be. Finally, housing prices are also related to the type of house. All the results are shown below:
 
-## 2.9 Price by Region
+## Price by Region
 
 ```{r price_region}
 
@@ -432,7 +437,7 @@ ggplot(data.full,
 
 ```
 
-## 2.10 Price by Number of Rooms (<10 Rooms)
+## Price by Number of Rooms (<10 Rooms)
 
 ```{r price_rooms}
 
@@ -448,7 +453,7 @@ ggplot(subset(data.full, Rooms<10),
 ```
 
 
-## 2.11 Price by Type of Home
+## Price by Type of Home
 
 ```{r price_type}
 
@@ -465,7 +470,7 @@ ggplot(data.full,
 ```
 
 
-## 2.12 Test of Independence by Group (Pearson $\chi^2$)
+## Test of Independence by Group (Pearson $\chi^2$)
 ### Type, Rooms, Regionname, SellerG
 
 ```{r type_person}
@@ -490,7 +495,7 @@ All reject $H_0$ with p-value$<2\times 10^{-16}$
 
 
 
-## 2.13 Price by Region and Type
+## Price by Region and Type
 The picture below shows the price with different region and type of house.
 
 ```{r price_type_region}
@@ -534,7 +539,7 @@ grid.arrange(p1,p2,p3, nrow=1)
 
 ```
 
-## 2.14 Transform Data - Homogeneity                                                    
+## Transform Data - Homogeneity                                                    
 
 ```{r lm5_trans}
 # log transform
@@ -551,7 +556,7 @@ y.trans.pred<-predict(mod6)
 
 ```
 
-## 2.15 Transform Data - Normality                                                               
+## Transform Data - Normality                                                               
 ```{r lm5_trans_qq}
 # log transform
 # drop drop influence points
@@ -564,9 +569,9 @@ plot(mod6, which=2, sub.caption="Model 4 with Log(Price) Transformation")
 ```
 
 
-# 3 Linear Modelling
+# Linear Modelling
 
-## 3.1 First Attempt at Linear Model
+## First Attempt at Linear Model
 In this first model, we set the regression model as: 
 Price ~ Rooms + Landsize + Distance + Bedroom2 + Bathroom + Car + BuildingArea + Lattitude + Longtitude + Propertycount + factor (Regionname).
 In order to determine whether the first model meets the requirements, the necessary VIF checks are useful. From the picture, we can know that the bedroom2 is not suitable for house price regression analysis. Thus, the second model regression analysis is modified with no bedroom2 variable.
@@ -592,7 +597,7 @@ text(which.max(mod.vifs), max(mod.vifs)-1, label=names(mod$coefficients[which.ma
 ```
 
 
-## 3.2 Linear Model 2: Removed the Variable with Highest VIF
+## Linear Model 2: Removed the Variable with Highest VIF
 In this model, we set the regression model as: 
 Price ~ Rooms + Landsize + Distance + Bathroom + Car + BuildingArea + Lattitude + Longtitude + Propertycount + factor (Regionname). 
 Similarly with Model 1, the VIF’s results shown as follows:
@@ -644,7 +649,7 @@ legend("topright",
 
 The p-value of Landsize is the highest, which is larger than 0.05. Thus, this variable should be dropped. 
 
-## 3.3 Linear Model 3: Considered Interactions
+## Linear Model 3: Considered Interactions
 In this model, we analyze the interaction of rooms and region. The result is shown as follows: 
 
 
@@ -679,7 +684,7 @@ legend("topright",
 The p-value for model with interaction shows that all of the variables are suitable and acceptable. 
 
 
-## 3.3 Linear Model 4: Removed Land Size
+## Linear Model 4: Removed Land Size
 From the consequence of model 2, the variable of landsize should be dropped. In this model, the model is set as:
 Price ~ Rooms + Distance + Bathroom + Car + BuildingArea + Lattitude + Longtitude + Propertycount + factor (Regionname).
 
@@ -729,21 +734,21 @@ legend("topright",
 
 
 ```
-# 4 Residual Analysis
+# Residual Analysis
 
-## 4.1 Homogeneity? No                                                              
+## Homogeneity? No                                                              
 ```{r lm4_redids}
 
 plot(mod4, which=1, sub.caption="Model 4")
 ```
 
-## 4.2 Normal? Not Quite
+## Normal? Not Quite
 ```{r lm4_qq}
 
 plot(mod4, which=2, sub.caption="Model 4")                                                                                                                                                      
 ```
 
-## 4.3 Influence? Yes
+## Influence? Yes
 ```{r lm4_lev}
 
 plot(mod4, which=5, sub.caption="Model 4")
@@ -764,13 +769,11 @@ plot(mod4, which=5, sub.caption="Model 4 without Outliers")
 ```
 
                                                                                                        
-# 5 Proposed Model 
+# Proposed Model 
 This final proposed model and details of related coefficients are shown as follows:
-
-
-![ ](/Users/robertlong/Documents/Education/Math/Graduate/Data Science - D6101/Midterm_project/images/proposed_model.png)
-
-
+``` {r prop_mod, results="markdown"}
+summ(mod4)
+```
 ## Testing $R^2$
 
 ```{r lm4_pred}
@@ -796,20 +799,21 @@ r.2 <- r2(y.pred[keeps], y.test[keeps])
 ```
 
 $$ \begin{equation} R^2 = 1- \dfrac{RSS}{TSS} \end{equation}=0.441$$ 
-```
 
 
 
-# 6 Future Work
+
+
+
+# Conclusion
+The previous analysis did not deal with outliers, and the processing of outliers may also have a certain effect on result optimization. Through the analysis of this data set, the content of linear regression was practiced, and the final effect was not bad. For the future, some useful method can be implemented, such as further explore log transformation, consider GLM with log link, what to do about factors with many levels (100’s)? deal with missing data and improve Prediction.
+
+## Future Work
 - Further explore log transformation                 
 - Consider GLM with log link
 - What to do about factors with many levels (100's)? 
 - Missing data
-- Improve Prediction
-
-# 7 Conclusion
-The previous analysis did not deal with outliers, and the processing of outliers may also have a certain effect on result optimization. Through the analysis of this data set, the content of linear regression was practiced, and the final effect was not bad. For the future, some useful method can be implemented, such as further explore log transformation, consider GLM with log link, what to do about factors with many levels (100’s)? deal with missing data and improve Prediction.
-
+- Improve Prediction 
 
 # 8 Bibliography 
 Dataset available: https://www.kaggle.com/dansbecker/melbourne-housing-snapshot
