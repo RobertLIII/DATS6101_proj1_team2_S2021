@@ -348,6 +348,7 @@ pairs(data.full[numerics[c(2, 3, 7, 8, 12)]])
 
 ## 2.5 Corrleations
 
+Due to the large number of feature columns in the dataset, it is difficult to grasp. Therefore, before further feature mining, take a look at which variables are highly correlated with House Price (mainly focusing on numeric variables). The result is shown as follows:
 ```{r heatmap}
 
 data.corr <- rcorr(as.matrix(data.fixedname[numerics.fixed]))
@@ -364,7 +365,11 @@ hm <- heatmaply_cor(
 ```
 `r hm`
 
+We can draw conclusion from the above picture that the price has a positive relationship with the type of room, but has a negative relationship with distance. And there are also strong correlations between some variables, such as Rooms and Bedrooms, Rooms and Bathrooms, Bedrooms and Bathrooms, which may cause multicollinearity. We need to pay attention to feature selection.
+
 ## 2.6 Selling Price
+
+In order to forecast the sales price more reasonably, before making the forecast, there is a comparative analysis of its distribution. SalePrice is a predictor variable. Take a graph to see its distribution:
 
 ```{r price_data_plots}
 
@@ -377,6 +382,7 @@ qqline(data.full$Price)
 
 ```
 
+Each point of a string of numbers in the data is a certain quantile of the data. Pair these points (called sample quantile points) with the corresponding theoretical quantiles to make a scatter plot. The data obeys the normal distribution, then the graph should look like a straight line, otherwise it does not obey the normal distribution. It can be seen from the distribution diagram of selling price that selling price does not follow a normal distribution. In the case of not obeying the normal distribution, a new method should be selected to change the data to obey the normal distribution. Thus, the log operation is implemented in selling price.
 
 ## 2.7 Log Selling Price
 
@@ -394,6 +400,8 @@ Price.upper <- exp(logPrice.ttest$conf.int[2])
 
 ```
 
+From the Q-Q plot of log selling price, we could draw that the graph looks like a straight line. Thus, log selling price obeys normal distribution.
+
 ## 2.8 Map of Melbourne Sales
 
 ```{r price_region_qq}
@@ -405,7 +413,9 @@ ggplot(data.full) +
 
 ```
 
+It can be seen from the figure that the sales areas are mainly concentrated in Eastern metropolitan, Southern metropolitan, Northern Metropolitan, Western Metropolitan and South-Eastern metropolitan. Therefore, the fluctuation of housing prices will greatly affect these areas, and these areas account for about 5/6 of Melbourne.
 
+In the conclusion of the correlation analysis, the price is related to the region. In other words, the sale price of the house is also different in different regions. In addition, the price is also related to the number of rooms; the more rooms there are, the higher the price will be. Finally, housing prices are also related to the type of house. All the results are shown below:
 
 ## 2.9 Price by Region
 
@@ -485,6 +495,7 @@ All reject $H_0$ with p-value$<2\times 10^{-16}$
 
 ## 2.13 Price by Region and Type
 
+The picture below shows the price with different region and type of house.
 
 ```{r price_type_region}
 
@@ -561,6 +572,10 @@ plot(mod6, which=2, sub.caption="Model 4 with Log(Price) Transformation")
 
 ## 3.1 First Attempt at Linear Model
 
+In this first model, we set the regression model as: 
+Price ~ Rooms + Landsize + Distance + Bedroom2 + Bathroom + Car + BuildingArea + Lattitude + Longtitude + Propertycount + factor (Regionname).
+In order to determine whether the first model meets the requirements, the necessary VIF checks are useful. From the picture, we can know that the bedroom2 is not suitable for house price regression analysis. Thus, the second model regression analysis is modified with no bedroom2 variable.
+
 ```{r lm1, results='asis'}
 
 mod <- lm(Price ~ Rooms + Landsize
@@ -583,6 +598,11 @@ text(which.max(mod.vifs), max(mod.vifs)-1, label=names(mod$coefficients[which.ma
 
 
 ## 3.2 Linear Model 2: Removed the Variable with Highest VIF
+
+In this model, we set the regression model as: 
+Price ~ Rooms + Landsize + Distance + Bathroom + Car + BuildingArea + Lattitude + Longtitude + Propertycount + factor (Regionname). 
+Similarly with Model 1, the VIF’s results shown as follows:
+
 ```{r lm2_vif, results='asis'}
 # drop Bedroom2 - keep
 mod2 <-  lm(Price ~ Rooms + Landsize
@@ -606,6 +626,9 @@ text(which.max(mod2.vifs)-3, max(mod2.vifs)-0.5, label=names(mod2$coefficients[w
 
 ## Model Coefficients
 
+In this model, the factor (Regionname) Western Metropolitan is the variable with highest VIF value. The model coefficients are shown as follows:
+
+
 ```{r lm2_mod, results='asis'}
 
 mod2.summ <-summary(mod2)
@@ -626,7 +649,12 @@ legend("topright",
        legend="Region Factor Levels")
 ```
 
+The p-value of Landsize is the highest, which is larger than 0.05. Thus, this variable should be dropped. 
+
 ## 3.3 Linear Model 3: Considered Interactions
+
+In this model, we analyze the interaction of rooms and region. The result is shown as follows: 
+
 
 ```{r lm3, results='asis'}
 #  mod 2 with rooms*region interaction -  failed model, drop interaction
@@ -656,8 +684,14 @@ legend("topright",
 
 ```
 
+The p-value for model with interaction shows that all of the variables are suitable and acceptable. 
+
 
 ## 3.3 Linear Model 4: Removed Land Size
+
+From the consequence of model 2, the variable of landsize should be dropped. In this model, the model is set as:
+Price ~ Rooms + Distance + Bathroom + Car + BuildingArea + Lattitude + Longtitude + Propertycount + factor (Regionname).
+
 
 ```{r lm4, results='asis'}
 
@@ -680,6 +714,7 @@ points(which.max(mod4.vifs), max(mod4.vifs), pch=23, col="red", bg="red")
 text(which.max(mod4.vifs)-3, max(mod4.vifs)-0.5, label=names(mod4$coefficients[which.max(mod4.vifs)+1]))
 ```
 
+From the results of VIF Value for model 4, the factor (Regionname) Western Metropolitan should be dropped. At the same time, the VIF value of this variable is the only variable that exceeds 5.
 
 ## Model 4 Coefficients
 ```{r lm4_pvalues, results='asis'}
@@ -739,6 +774,9 @@ plot(mod4, which=5, sub.caption="Model 4 without Outliers")
 
                                                                                                        
 # 5 Proposed Model 
+
+This final proposed model and details of related coefficients are shown as follows:
+
 
 ![ ](/Users/robertlong/Documents/Education/Math/Graduate/Data Science - D6101/Midterm_project/images/proposed_model.png)
 
