@@ -10,7 +10,7 @@ output:
     number_section: true
 
 ---
-# 1 Introduction
+# Introduction
 This paper discusses our project using data on housing prices in Melbourne in 2017.
 The establishment of a real estate price prediction system is a key task for the healthy development of the current real estate industry. 
 Having a simple predictive and inferential method to model housing prices helps commerce determine fair prices and allows governments to determine property taxes. 
@@ -58,6 +58,7 @@ loadPkg("scales")
 loadPkg("heatmaply")
 loadPkg("Hmisc")
 loadPkg("faraway")
+loadPkg("jtools")
 
 set.seed(17)
 data.full <- read.csv("melb_data.csv")
@@ -241,11 +242,7 @@ counts <- function(variable){
 }
 
 ```
-# 2 Exploratory Data Analysis (EDA)
-The following are excerpts and graphs from our exploratory data analysis. 
-This part of the project familiarizes the reader with our dataset's attributes as well as lays
-the foundation for the variables will include in our linear model. 
-The results of our EDA will also inform the future direction of the project.
+
 
 
 ## The Melbourne Housing Snapshot Dataset
@@ -325,6 +322,12 @@ Suburb: Suburb name - 314 categories
 ## Goals
 1.	Understand which attributes of a home and its sale determine final sale price
 2.	Attempt to build a reasonable model for inference and/or prediction for final sale price
+
+# Exploratory Data Analysis (EDA)
+The following are excerpts and graphs from our exploratory data analysis. 
+This part of the project familiarizes the reader with our dataset's attributes as well as lays
+the foundation for the variables will include in our linear model. 
+The results of our EDA will also inform the future direction of the project.
 
 ## Summary of Price Statistics
 
@@ -456,8 +459,8 @@ ggplot(data.full,
 ```
 
 
-## Test of Independence by Group (Pearson $\chi^2$)
-### Type, Rooms, Regionname, SellerG
+## Test of Independence (Pearson $\chi^2$) by Group: Type, Rooms, Regionname, SellerG
+
 
 ```{r type_person}
 
@@ -525,41 +528,12 @@ grid.arrange(p1,p2,p3, nrow=1)
 
 ```
 
-## Transform Data - Homogeneity                                                    
 
-```{r lm5_trans}
-# log transform
-# drop drop influence points
-mod6 <- lm(log(Price) ~ Rooms + Car
-          + Distance   + Car + BuildingArea
-          + Lattitude + Longtitude + Propertycount
-          + factor(Regionname) , data=data.train[!(rownames(data.train) %in% c("13246","2561", "1589")),])
+# Linear Modelling
 
-plot(mod6, which=1, sub.caption="Model 4 with Log(Price) Transformation")
+## First Attempt at Linear Model
 
-
-y.trans.pred<-predict(mod6)
-
-```
-
-## Transform Data - Normality                                                               
-```{r lm5_trans_qq}
-# log transform
-# drop drop influence points
-mod6 <- lm(log(Price) ~ Rooms + Car
-          + Distance   + Car + BuildingArea
-          + Lattitude + Longtitude + Propertycount
-          + factor(Regionname) , data=data.train[!(rownames(data.train) %in% c("13246","2561", "1589")),])
-
-plot(mod6, which=2, sub.caption="Model 4 with Log(Price) Transformation")
-```
-
-
-# 3 Linear Modelling
-
-## 3.1 First Attempt at Linear Model
-
-```{r lm1, results='asis'}
+```{r lm1, results='markdown'}
 
 mod <- lm(Price ~ Rooms + Landsize
           + Distance + Bedroom2 + Bathroom + Car + BuildingArea
@@ -580,8 +554,8 @@ text(which.max(mod.vifs), max(mod.vifs)-1, label=names(mod$coefficients[which.ma
 ```
 
 
-## 3.2 Linear Model 2: Removed the Variable with Highest VIF
-```{r lm2_vif, results='asis'}
+## Linear Model 2: Removed the Variable with Highest VIF
+```{r lm2_vif, results='markdown'}
 # drop Bedroom2 - keep
 mod2 <-  lm(Price ~ Rooms + Landsize
           + Distance  + Bathroom + Car + BuildingArea
@@ -602,9 +576,9 @@ text(which.max(mod2.vifs)-3, max(mod2.vifs)-0.5, label=names(mod2$coefficients[w
 
 ```
 
-## Model Coefficients
+### Model Coefficients
 
-```{r lm2_mod, results='asis'}
+```{r lm2_mod, results='markdown'}
 
 mod2.summ <-summary(mod2)
 plot(mod2.summ$coefficients[,"Pr(>|t|)"],
@@ -624,9 +598,9 @@ legend("topright",
        legend="Region Factor Levels")
 ```
 
-## 3.3 Linear Model 3: Considered Interactions
+## Linear Model 3: Considered Interactions
 
-```{r lm3, results='asis'}
+```{r lm3, results='markdown'}
 #  mod 2 with rooms*region interaction -  failed model, drop interaction
 mod3 <-  lm(Price ~ Rooms + Landsize
           + Distance  + Bathroom + Car + BuildingArea
@@ -655,7 +629,7 @@ legend("topright",
 ```
 
 
-## 3.3 Linear Model 4: Removed Land Size
+## Linear Model 4: Removed Land Size
 
 ```{r lm4, results='asis'}
 
@@ -701,21 +675,21 @@ legend("topright",
 
 
 ```
-# 4 Residual Analysis
+# Residual Analysis
 
-## 4.1 Homogeneity? No                                                              
+## Homogeneity? No                                                              
 ```{r lm4_redids}
 
 plot(mod4, which=1, sub.caption="Model 4")
 ```
 
-## 4.2 Normal? Not Quite
+## Normal? Not Quite
 ```{r lm4_qq}
 
 plot(mod4, which=2, sub.caption="Model 4")                                                                                                                                                      
 ```
 
-## 4.3 Influence? Yes
+## Influence? Yes
 ```{r lm4_lev}
 
 plot(mod4, which=5, sub.caption="Model 4")
@@ -735,14 +709,43 @@ mod5 <- mod4 <-  lm(Price ~ Rooms
 plot(mod4, which=5, sub.caption="Model 4 without Outliers")
 ```
 
+## Transformed Data - Homogeneity                                                    
+
+```{r lm5_trans}
+# log transform
+# drop drop influence points
+mod6 <- lm(log(Price) ~ Rooms + Car
+          + Distance   + Car + BuildingArea
+          + Lattitude + Longtitude + Propertycount
+          + factor(Regionname) , data=data.train[!(rownames(data.train) %in% c("13246","2561", "1589")),])
+
+plot(mod6, which=1, sub.caption="Model 4 with Log(Price) Transformation")
+
+
+y.trans.pred<-predict(mod6)
+
+```
+
+## Transformed Data - Normality                                                               
+```{r lm5_trans_qq}
+# log transform
+# drop drop influence points
+mod6 <- lm(log(Price) ~ Rooms + Car
+          + Distance   + Car + BuildingArea
+          + Lattitude + Longtitude + Propertycount
+          + factor(Regionname) , data=data.train[!(rownames(data.train) %in% c("13246","2561", "1589")),])
+
+plot(mod6, which=2, sub.caption="Model 4 with Log(Price) Transformation")
+```
+
                                                                                                        
-# 5 Proposed Model 
+# Proposed Model 
 
 ``` {r prop_mod, results="markdown"}
-options(scipen=0, digits = 3) 
-mod4.summ
-options(scipen=9, digits = 3) 
+
+summ(mod4, vifs=T)
 ```
+
 
 
 ## Testing $R^2$
@@ -773,16 +776,15 @@ $$ \begin{equation} R^2 = 1- \dfrac{RSS}{TSS} \end{equation}=0.441$$
 
 
 
+# Conclusion
 
-# 6 Future Work
+## Future Work
 - Further explore log transformation                 
 - Consider GLM with log link
 - What to do about factors with many levels (100's)? 
 - Missing data
 - Improve Prediction
 
-# 7 Conclusion
-
-# 8 Bibliography 
+# Bibliography 
 
 
