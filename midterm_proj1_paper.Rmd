@@ -819,8 +819,11 @@ The previous analysis did not deal with outliers, and the processing of outliers
 
 # 8 Bibliography 
 Dataset available: https://www.kaggle.com/dansbecker/melbourne-housing-snapshot
+
 Thorne,S. (2019, November 3) How the Australian Property Market Performed in 2017. Retrieved from www.openagent.com.au/blog/how-the-australian-property-market-performed-in-2017#. 
+
 Mansfield, E. R., & Helms, B. P. (1982). Detecting multicollinearity. The American Statistician, 36(3a), 158-160.
+
 Daoud, J. I. (2017, December). Multicollinearity and regression analysis. In Journal of Physics: Conference Series (Vol. 949, No. 1, p. 012009). IOP Publishing.
  
 
