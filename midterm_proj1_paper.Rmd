@@ -463,6 +463,8 @@ ggplot(data.full,
 ## Test of Independence by Group (Pearson $\chi^2$)
 ### Type, Rooms, Regionname, SellerG
 
+Since anova was a no due to assumptions, we cut price into 5 uneven levels of at least 8 observations and performed Pearson Chi Squared.
+
 ```{r type_person}
 
 data.full$Price.cuts <- as.character(cut(data.full$Price, 10))
@@ -480,9 +482,9 @@ seller.chi <- chisq.test(data.full$SellerG, data.full$Price.cut)
 
 $H_0$: All means equal by group 
 
-
 All reject $H_0$ with p-value$<2\times 10^{-16}$
 
+The null hypothesis is that there is no difference in means among each level of the four categorical variables that we tests. As expected, we rejected null.
 
 
 ## Price by Region and Type
@@ -530,7 +532,7 @@ grid.arrange(p1,p2,p3, nrow=1)
 ```
 
 ## Transform Data - Homogeneity                                                    
-
+This is a residual anlysis on the transformed log-data linear model. We may want to move this because it is on the modelling; it is just a model that we threw out because we relied on the robustness of linear regression since the pattern in the proposed model was visible but not super pronounced.
 ```{r lm5_trans}
 # log transform
 # drop drop influence points
@@ -546,7 +548,8 @@ y.trans.pred<-predict(mod6)
 
 ```
 
-## Transform Data - Normality                                                               
+## Transform Data - Normality    
+This is a qq plot used to check for normality on the residuals from 3.15. It's slightly improved from our proposed model but IMO, not enough to really push for the log transform.
 ```{r lm5_trans_qq}
 # log transform
 # drop drop influence points
