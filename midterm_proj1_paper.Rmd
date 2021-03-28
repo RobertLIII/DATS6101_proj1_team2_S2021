@@ -405,6 +405,7 @@ Price.upper <- exp(logPrice.ttest$conf.int[2])
 From the Q-Q plot of log selling price, we could draw that the graph looks like a straight line. Thus, log selling price obeys normal distribution.
 
 ## Map of Melbourne Sales
+A visual analysis of the current housing sales distribution in Melbourne was carried out. The result is shown in the figure below.
 
 ```{r price_region_qq}
 
@@ -757,6 +758,7 @@ plot(mod4, which=5, sub.caption="Model 4")
 
 
 ## Remove Influence Points
+Homogeneity and normal for Resididual Analysis about model 4 is implemented. The result shows that it's necessary to remove the influence points.
 ```{r lm5}
                                
 # drop drop influence points
