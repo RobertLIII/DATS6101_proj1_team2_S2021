@@ -3,7 +3,12 @@ title: "Melbourne Housing Market-Paper1"
 subtitle: "Intro Data Science"
 author: "Team 2"
 date: "`r Sys.Date()`"
-output: ioslides_presentation
+output:
+  html_document:
+    toc: true
+    toc_float: true
+    number_section: true
+
 ---
 # 1 Introduction
 This paper discusses our project using data on housing prices in Melbourne in 2017.
@@ -675,7 +680,7 @@ text(which.max(mod4.vifs)-3, max(mod4.vifs)-0.5, label=names(mod4$coefficients[w
 
 
 ## Model 4 Coefficients
-```{r lm4_pvalues, results='asis'}
+```{r lm4_pvalues, results='markdown'}
 
 mod4.summ <- summary(mod4)
 
@@ -733,7 +738,11 @@ plot(mod4, which=5, sub.caption="Model 4 without Outliers")
                                                                                                        
 # 5 Proposed Model 
 
-![ ](/images/proposed_model.png)
+``` {r prop_mod, results="markdown"}
+options(scipen=0, digits = 3) 
+mod4.summ
+options(scipen=9, digits = 3) 
+```
 
 
 ## Testing $R^2$
@@ -761,7 +770,7 @@ r.2 <- r2(y.pred[keeps], y.test[keeps])
 ```
 
 $$ \begin{equation} R^2 = 1- \dfrac{RSS}{TSS} \end{equation}=0.441$$ 
-```
+
 
 
 
