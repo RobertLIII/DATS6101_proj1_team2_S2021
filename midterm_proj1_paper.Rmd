@@ -6,29 +6,17 @@ date: "`r Sys.Date()`"
 output: ioslides_presentation
 ---
 # 1 Introduction
+This paper discusses our project using data on housing prices in Melbourne in 2017.
+The establishment of a real estate price prediction system is a key task for the healthy development of the current real estate industry. 
+Having a simple predictive and inferential method to model housing prices helps commerce determine fair prices and allows governments to determine property taxes. 
+This project aims to learn how different factors may affect home sales price by building linear models. 
+Although data that will be utilized was collected in Melbourne, Australia in 2017, the concept that location and home attributes correlate with housing prices could reasonably apply broadly and internationally. 
 
-The buying and selling of houses has always been the most concerned issue of the people, and it is a major issue related to people's livelihood. Housing prices are an important indicator that reflects the performance of the economy. 
-Real estate developers and home buyers pay close attention to housing price fluctuations. 
-In a complete market environment, housing prices are jointly determined by demand and supply. 
-However, in the current society, housing has both residential and investment functions, making the research on housing prices very complicated. 
-To predict long-term housing prices has become an extremely complex and challenging task. The establishment of a real estate price prediction system is a key task for the healthy development of the current real estate industry. 
-However, the rapid rise in housing prices has always plagued most of the middle and low-income groups, and this has developed into a sensitive issue in people's daily life. 
-Therefore, studying the influencing factors of real estate prices and predicting them will help the people of the middle and low-income groups to choose the right time to buy a house, and it will also help the government officials understand the trend of real estate prices and regulate them. 
-Having a simple predictive and inferential method to model housing prices helps commerce determine fair prices and allows governments to determine property taxes. This project aims to learn how different factors may affect home sales price by building linear models. Although data that will be utilized was collected in Melbourne, Australia in 2017, the concept that location and home attributes correlate with housing prices could reasonably apply broadly and internationally. 
+The following questions are the main subjects which this project focuses on:
 
-# Introduction Re-Write:
-Housing prices are an important indicator of the strength of the economy. House price prediction can help real estate developers determine the selling price of a house, allow buyers make informed choices about potential purchases, and be beneficial for property investors in determining price trends across different locations. 
-Hence having a simple predictive and inferential method to model housing prices can be of great significance to the financial market; however, predicting long-term housing prices has become a complex and challenging task. 
-This paper discusses our project on determining how different factors may affect home sales price by building linear models. 
-The data used in this project was collected in Melbourne, Australia in 2017. 
-Melbourne is a large metropolitan city with a strong real estate market in a region of Australia that experienced a 4.2 percent growth rate in property sales 2017. 
-We believe the factors that determine housing pricing in our model could have broad applications to other locations and countries.
- 
-Our project sought to answer the following questions:
 1. Understand if housing prices in Melbourne, Australia can be predicted using this dataset.
 2. Determine what variables have the greatest impact on housing price.
-3. Analyze the impacts of location, seller, and construction attributes of homes on the housing market in Melbourne, Australia.
- 
+3. Analyze the impacts of location, seller, and construction attributes of homes on the housing market in Melbourne, Australia. 
 
 
 
@@ -250,17 +238,12 @@ counts <- function(variable){
 ```
 # 2 Exploratory Data Analysis (EDA)
 The following are excerpts and graphs from our exploratory data analysis. 
-This part of the project familiarizes the reader with our dataset's attributes as well as lays the foundation for the variables we will include in our linear model. 
-The results of our EDA will also inform the future direction of the project. We completed our EDA with the folowing goals in mind:
-
-## Goals
-1.	Understand which attributes of a home and its sale determine final sale price
-2.	Attempt to build a reasonable model for inference and/or prediction for final sale price
+This part of the project familiarizes the reader with our dataset's attributes as well as lays
+the foundation for the variables will include in our linear model. 
+The results of our EDA will also inform the future direction of the project.
 
 
-
-## 2.1 The Melbourne Housing Snapshot Dataset
-The independent variables mainly reflect the situation of the house from three dimensions: a. what type; b. quality, grade; c. quantity, area.Before EDA, the details and introduction of the existing Melbourne house data variables are as follows:
+## The Melbourne Housing Snapshot Dataset
 
 ```{r data_feats}                                                                                                                                                                                 
 
@@ -290,7 +273,7 @@ colnames(data.fixedname)[colnames(data.fixedname) %in% numerics] <- numerics.fix
   - Numeric: `r length(numerics)`
   - Categorical: `r nvar - length(numerics)`
                                                            
-## 2.2 The Variables
+## The Variables
 ```{r vars, results="asis"}
 var.names <- c(names(data.full))
 
@@ -313,6 +296,8 @@ Distance: Distance from Central Business District
 Regionname: Region name - 8 categories
 
 Propertycount: Number of properties that exist in the suburb
+
+## More Variables
                                                                     
 Bedroom2 : Number of Bedrooms                              
                                                         
@@ -332,7 +317,11 @@ Lattitude, Longtitude: GPS location
 
 Suburb: Suburb name - 314 categories                                            
 
-## 2.3 Summary of Price Statistics
+## Goals
+1.	Understand which attributes of a home and its sale determine final sale price
+2.	Attempt to build a reasonable model for inference and/or prediction for final sale price
+
+## Summary of Price Statistics
 
 Mean: `r dollar(mean(data.full$Price))`
 
@@ -340,13 +329,13 @@ SD: `r sqrt(var(data.full$Price))`
 
 `r xkablesummary( as.data.frame(data.full$Price), title=NULL)`
 
-## 2.4 Select Data Pairs
+## Select Data Pairs
 ```{r pairs}
 pairs(data.full[numerics[c(2, 3, 7, 8, 12)]])
 ```
 
-## 2.5 Corrleations
-Due to the large number of feature columns in the dataset, it is difficult to grasp. Therefore, before further feature mining, take a look at which variables are highly correlated with House Price (mainly focusing on numeric variables). The result is shown as follows:
+## Corrleations
+
 ```{r heatmap}
 
 data.corr <- rcorr(as.matrix(data.fixedname[numerics.fixed]))
@@ -363,10 +352,19 @@ hm <- heatmaply_cor(
 ```
 `r hm`
 
-We can draw conclusion from the above picture that the price has a positive relationship with the type of room, but has a negative relationship with distance. And there are also strong correlations between some variables, such as Rooms and Bedrooms, Rooms and Bathrooms, Bedrooms and Bathrooms, which may cause multicollinearity. We need to pay attention to feature selection.
+## Map of Melbourne Sales
 
-## 2.6 Selling Price
-In order to forecast the sales price more reasonably, before making the forecast, there is a comparative analysis of its distribution. SalePrice is a predictor variable. Take a graph to see its distribution:
+```{r price_region_qq}
+
+
+ggplot(data.full) + 
+  aes(x=Lattitude, y=Longtitude, color=Regionname) + 
+  geom_point()
+
+```
+
+
+## Selling Price
 
 ```{r price_data_plots}
 
@@ -379,9 +377,8 @@ qqline(data.full$Price)
 
 ```
 
-Each point of a string of numbers in the data is a certain quantile of the data. Pair these points (called sample quantile points) with the corresponding theoretical quantiles to make a scatter plot. The data obeys the normal distribution, then the graph should look like a straight line, otherwise it does not obey the normal distribution. It can be seen from the distribution diagram of selling price that selling price does not follow a normal distribution. In the case of not obeying the normal distribution, a new method should be selected to change the data to obey the normal distribution. Thus, the log operation is implemented in selling price.
 
-## 2.7 Log Selling Price
+## Log Selling Price
 
 ```{r log_price_plots}
 layout(matrix(c(1,2,3), 1,3))
@@ -397,24 +394,8 @@ Price.upper <- exp(logPrice.ttest$conf.int[2])
 
 ```
 
-From the Q-Q plot of log selling price, we could draw that the graph looks like a straight line. Thus, log selling price obeys normal distribution.
 
-## 2.8 Map of Melbourne Sales
-
-```{r price_region_qq}
-
-
-ggplot(data.full) + 
-  aes(x=Lattitude, y=Longtitude, color=Regionname) + 
-  geom_point()
-
-```
-
-It can be seen from the figure that the sales areas are mainly concentrated in Eastern metropolitan, Southern metropolitan, Northern Metropolitan, Western Metropolitan and South-Eastern metropolitan. Therefore, the fluctuation of housing prices will greatly affect these areas, and these areas account for about 5/6 of Melbourne.
-
-In the conclusion of the correlation analysis, the price is related to the region. In other words, the sale price of the house is also different in different regions. In addition, the price is also related to the number of rooms; the more rooms there are, the higher the price will be. Finally, housing prices are also related to the type of house. All the results are shown below:
-
-## 2.9 Price by Region
+## Price by Region
 
 ```{r price_region}
 
@@ -432,7 +413,12 @@ ggplot(data.full,
 
 ```
 
-## 2.10 Price by Number of Rooms (<10 Rooms)
+
+
+
+
+
+## Price by Number of Rooms (<10 Rooms)
 
 ```{r price_rooms}
 
@@ -448,7 +434,7 @@ ggplot(subset(data.full, Rooms<10),
 ```
 
 
-## 2.11 Price by Type of Home
+## Price by Type of Home
 
 ```{r price_type}
 
@@ -465,7 +451,7 @@ ggplot(data.full,
 ```
 
 
-## 2.12 Test of Independence by Group (Pearson $\chi^2$)
+## Test of Independence by Group (Pearson $\chi^2$)
 ### Type, Rooms, Regionname, SellerG
 
 ```{r type_person}
@@ -490,8 +476,8 @@ All reject $H_0$ with p-value$<2\times 10^{-16}$
 
 
 
-## 2.13 Price by Region and Type
-The picture below shows the price with different region and type of house.
+## Price by Region and Type
+
 
 ```{r price_type_region}
 
@@ -534,7 +520,7 @@ grid.arrange(p1,p2,p3, nrow=1)
 
 ```
 
-## 2.14 Transform Data - Homogeneity                                                    
+## Transform Data - Homogeneity                                                    
 
 ```{r lm5_trans}
 # log transform
@@ -551,7 +537,7 @@ y.trans.pred<-predict(mod6)
 
 ```
 
-## 2.15 Transform Data - Normality                                                               
+## Transform Data - Normality                                                               
 ```{r lm5_trans_qq}
 # log transform
 # drop drop influence points
@@ -567,9 +553,6 @@ plot(mod6, which=2, sub.caption="Model 4 with Log(Price) Transformation")
 # 3 Linear Modelling
 
 ## 3.1 First Attempt at Linear Model
-In this first model, we set the regression model as: 
-Price ~ Rooms + Landsize + Distance + Bedroom2 + Bathroom + Car + BuildingArea + Lattitude + Longtitude + Propertycount + factor (Regionname).
-In order to determine whether the first model meets the requirements, the necessary VIF checks are useful. From the picture, we can know that the bedroom2 is not suitable for house price regression analysis. Thus, the second model regression analysis is modified with no bedroom2 variable.
 
 ```{r lm1, results='asis'}
 
@@ -593,10 +576,6 @@ text(which.max(mod.vifs), max(mod.vifs)-1, label=names(mod$coefficients[which.ma
 
 
 ## 3.2 Linear Model 2: Removed the Variable with Highest VIF
-In this model, we set the regression model as: 
-Price ~ Rooms + Landsize + Distance + Bathroom + Car + BuildingArea + Lattitude + Longtitude + Propertycount + factor (Regionname). 
-Similarly with Model 1, the VIF’s results shown as follows:
-
 ```{r lm2_vif, results='asis'}
 # drop Bedroom2 - keep
 mod2 <-  lm(Price ~ Rooms + Landsize
@@ -619,8 +598,6 @@ text(which.max(mod2.vifs)-3, max(mod2.vifs)-0.5, label=names(mod2$coefficients[w
 ```
 
 ## Model Coefficients
-In this model, the factor (Regionname) Western Metropolitan is the variable with highest VIF value. The model coefficients are shown as follows:
-
 
 ```{r lm2_mod, results='asis'}
 
@@ -642,11 +619,7 @@ legend("topright",
        legend="Region Factor Levels")
 ```
 
-The p-value of Landsize is the highest, which is larger than 0.05. Thus, this variable should be dropped. 
-
 ## 3.3 Linear Model 3: Considered Interactions
-In this model, we analyze the interaction of rooms and region. The result is shown as follows: 
-
 
 ```{r lm3, results='asis'}
 #  mod 2 with rooms*region interaction -  failed model, drop interaction
@@ -676,13 +649,8 @@ legend("topright",
 
 ```
 
-The p-value for model with interaction shows that all of the variables are suitable and acceptable. 
-
 
 ## 3.3 Linear Model 4: Removed Land Size
-From the consequence of model 2, the variable of landsize should be dropped. In this model, the model is set as:
-Price ~ Rooms + Distance + Bathroom + Car + BuildingArea + Lattitude + Longtitude + Propertycount + factor (Regionname).
-
 
 ```{r lm4, results='asis'}
 
@@ -705,7 +673,6 @@ points(which.max(mod4.vifs), max(mod4.vifs), pch=23, col="red", bg="red")
 text(which.max(mod4.vifs)-3, max(mod4.vifs)-0.5, label=names(mod4$coefficients[which.max(mod4.vifs)+1]))
 ```
 
-From the results of VIF Value for model 4, the factor (Regionname) Western Metropolitan should be dropped. At the same time, the VIF value of this variable is the only variable that exceeds 5.
 
 ## Model 4 Coefficients
 ```{r lm4_pvalues, results='asis'}
@@ -765,8 +732,6 @@ plot(mod4, which=5, sub.caption="Model 4 without Outliers")
 
                                                                                                        
 # 5 Proposed Model 
-This final proposed model and details of related coefficients are shown as follows:
-
 
 ![ ](/images/proposed_model.png)
 
@@ -808,14 +773,7 @@ $$ \begin{equation} R^2 = 1- \dfrac{RSS}{TSS} \end{equation}=0.441$$
 - Improve Prediction
 
 # 7 Conclusion
-The previous analysis did not deal with outliers, and the processing of outliers may also have a certain effect on result optimization. Through the analysis of this data set, the content of linear regression was practiced, and the final effect was not bad. For the future, some useful method can be implemented, such as further explore log transformation, consider GLM with log link, what to do about factors with many levels (100’s)? deal with missing data and improve Prediction.
-
 
 # 8 Bibliography 
-Dataset available: https://www.kaggle.com/dansbecker/melbourne-housing-snapshot
-Thorne,S. (2019, November 3) How the Australian Property Market Performed in 2017. Retrieved from www.openagent.com.au/blog/how-the-australian-property-market-performed-in-2017#. 
-Mansfield, E. R., & Helms, B. P. (1982). Detecting multicollinearity. The American Statistician, 36(3a), 158-160.
-Daoud, J. I. (2017, December). Multicollinearity and regression analysis. In Journal of Physics: Conference Series (Vol. 949, No. 1, p. 012009). IOP Publishing.
- 
 
 
