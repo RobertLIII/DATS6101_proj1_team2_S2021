@@ -357,7 +357,7 @@ hm <- heatmaply_cor(
 ```
 `r hm`
 
-## Map of Melbourne Sales
+## Map of Melbourne  Sales
 
 ```{r price_region_qq}
 
