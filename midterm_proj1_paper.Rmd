@@ -817,5 +817,8 @@ Thorne,S. (2019, November 3) How the Australian Property Market Performed in 201
 Mansfield, E. R., & Helms, B. P. (1982). Detecting multicollinearity. The American Statistician, 36(3a), 158-160.
 
 Daoud, J. I. (2017, December). Multicollinearity and regression analysis. In Journal of Physics: Conference Series (Vol. 949, No. 1, p. 012009). IOP Publishing.
- 
+
+Brownie, Cavell, and Dennis D. Boos. (1994). Type I Error Robustness of ANOVA and ANOVA on Ranks When the Number of Treatments Is Large. Biometrics, vol. 50, no. 2, 1994, p. 542.
+
+Lix, Lisa M., et al. (1996). Consequences of Assumption Violations Revisited: A Quantitative Review of Alternatives to the One-Way Analysis of Variance ‘F’ Test. Review of Educational Research, vol. 66, no. 4, 1996, p. 579.
 
