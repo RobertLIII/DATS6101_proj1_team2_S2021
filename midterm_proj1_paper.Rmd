@@ -298,8 +298,6 @@ Distance: Distance from Central Business District
 Regionname: Region name - 8 categories
 
 Propertycount: Number of properties that exist in the suburb
-
-## More Variables
                                                                     
 Bedroom2 : Number of Bedrooms                              
                                                         
@@ -329,13 +327,6 @@ This part of the project familiarizes the reader with our dataset's attributes a
 the foundation for the variables will include in our linear model. 
 The results of our EDA will also inform the future direction of the project.
 
-## Summary of Price Statistics
-
-Mean: `r dollar(mean(data.full$Price))`
-
-SD: `r sqrt(var(data.full$Price))`
-
-`r xkablesummary( as.data.frame(data.full$Price), title=NULL)`
 
 ## Select Data Pairs
 ```{r pairs}
@@ -374,6 +365,16 @@ ggplot(data.full) +
 
 ## Selling Price
 
+### Summary of Price Statistics
+
+Mean: `r dollar(mean(data.full$Price))`
+
+SD: `r sqrt(var(data.full$Price))`
+
+`r xkablesummary( as.data.frame(data.full$Price), title=NULL)`
+
+### Selling Price Distribution
+
 ```{r price_data_plots}
 
 
@@ -386,7 +387,7 @@ qqline(data.full$Price)
 ```
 
 
-## Log Selling Price
+### Log Selling Price Distribution
 
 ```{r log_price_plots}
 layout(matrix(c(1,2,3), 1,3))
@@ -403,7 +404,7 @@ Price.upper <- exp(logPrice.ttest$conf.int[2])
 ```
 
 
-## Price by Region
+### Price by Region
 
 ```{r price_region}
 
@@ -426,7 +427,7 @@ ggplot(data.full,
 
 
 
-## Price by Number of Rooms (<10 Rooms)
+### Price by Number of Rooms (<10 Rooms)
 
 ```{r price_rooms}
 
@@ -442,7 +443,7 @@ ggplot(subset(data.full, Rooms<10),
 ```
 
 
-## Price by Type of Home
+### Price by Type of Home
 
 ```{r price_type}
 
@@ -653,7 +654,7 @@ text(which.max(mod4.vifs)-3, max(mod4.vifs)-0.5, label=names(mod4$coefficients[w
 ```
 
 
-## Model 4 Coefficients
+### Model 4 Coefficients
 ```{r lm4_pvalues, results='markdown'}
 
 mod4.summ <- summary(mod4)
@@ -675,21 +676,22 @@ legend("topright",
 
 
 ```
-# Residual Analysis
 
-## Homogeneity? No                                                              
+### Residual Analysis
+
+#### Normality 
 ```{r lm4_redids}
 
 plot(mod4, which=1, sub.caption="Model 4")
 ```
 
-## Normal? Not Quite
+
 ```{r lm4_qq}
 
 plot(mod4, which=2, sub.caption="Model 4")                                                                                                                                                      
 ```
 
-## Influence? Yes
+#### Influence
 ```{r lm4_lev}
 
 plot(mod4, which=5, sub.caption="Model 4")
@@ -697,7 +699,7 @@ plot(mod4, which=5, sub.caption="Model 4")
 
 
 
-## Remove Influence Points
+### Remove Influence Points
 ```{r lm5}
                                
 # drop drop influence points
@@ -709,7 +711,9 @@ mod5 <- mod4 <-  lm(Price ~ Rooms
 plot(mod4, which=5, sub.caption="Model 4 without Outliers")
 ```
 
-## Transformed Data - Homogeneity                                                    
+
+## Transformation of Selling Price
+### Transformed Data - Homogeneity                                                    
 
 ```{r lm5_trans}
 # log transform
@@ -726,7 +730,7 @@ y.trans.pred<-predict(mod6)
 
 ```
 
-## Transformed Data - Normality                                                               
+### Transformed Data - Normality                                                               
 ```{r lm5_trans_qq}
 # log transform
 # drop drop influence points
@@ -743,7 +747,7 @@ plot(mod6, which=2, sub.caption="Model 4 with Log(Price) Transformation")
 
 ``` {r prop_mod, results="markdown"}
 
-summ(mod4, vifs=T)
+summ(mod4)
 ```
 
 
