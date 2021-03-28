@@ -9,18 +9,7 @@ output:
      toc_float: true
      number_section: true
 ---
-# Introduction
-
-The buying and selling of houses has always been the most concerned issue of the people, and it is a major issue related to people's livelihood. Housing prices are an important indicator that reflects the performance of the economy. 
-Real estate developers and home buyers pay close attention to housing price fluctuations. 
-In a complete market environment, housing prices are jointly determined by demand and supply. 
-However, in the current society, housing has both residential and investment functions, making the research on housing prices very complicated. 
-To predict long-term housing prices has become an extremely complex and challenging task. The establishment of a real estate price prediction system is a key task for the healthy development of the current real estate industry. 
-However, the rapid rise in housing prices has always plagued most of the middle and low-income groups, and this has developed into a sensitive issue in people's daily life. 
-Therefore, studying the influencing factors of real estate prices and predicting them will help the people of the middle and low-income groups to choose the right time to buy a house, and it will also help the government officials understand the trend of real estate prices and regulate them. 
-Having a simple predictive and inferential method to model housing prices helps commerce determine fair prices and allows governments to determine property taxes. This project aims to learn how different factors may affect home sales price by building linear models. Although data that will be utilized was collected in Melbourne, Australia in 2017, the concept that location and home attributes correlate with housing prices could reasonably apply broadly and internationally. 
-
-# Introduction Re-Write:
+# Introduction:
 Housing prices are an important indicator of the strength of the economy. House price prediction can help real estate developers determine the selling price of a house, allow buyers make informed choices about potential purchases, and be beneficial for property investors in determining price trends across different locations. 
 Hence having a simple predictive and inferential method to model housing prices can be of great significance to the financial market; however, predicting long-term housing prices has become a complex and challenging task. 
 This paper discusses our project on determining how different factors may affect home sales price by building linear models. 
