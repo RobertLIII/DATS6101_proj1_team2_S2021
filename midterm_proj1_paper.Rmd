@@ -260,7 +260,6 @@ The results of our EDA will also inform the future direction of the project. We 
 
 
 ## 2.1 The Melbourne Housing Snapshot Dataset
-
 The independent variables mainly reflect the situation of the house from three dimensions: a. what type; b. quality, grade; c. quantity, area.Before EDA, the details and introduction of the existing Melbourne house data variables are as follows:
 
 ```{r data_feats}                                                                                                                                                                                 
@@ -347,7 +346,6 @@ pairs(data.full[numerics[c(2, 3, 7, 8, 12)]])
 ```
 
 ## 2.5 Corrleations
-
 Due to the large number of feature columns in the dataset, it is difficult to grasp. Therefore, before further feature mining, take a look at which variables are highly correlated with House Price (mainly focusing on numeric variables). The result is shown as follows:
 ```{r heatmap}
 
@@ -368,7 +366,6 @@ hm <- heatmaply_cor(
 We can draw conclusion from the above picture that the price has a positive relationship with the type of room, but has a negative relationship with distance. And there are also strong correlations between some variables, such as Rooms and Bedrooms, Rooms and Bathrooms, Bedrooms and Bathrooms, which may cause multicollinearity. We need to pay attention to feature selection.
 
 ## 2.6 Selling Price
-
 In order to forecast the sales price more reasonably, before making the forecast, there is a comparative analysis of its distribution. SalePrice is a predictor variable. Take a graph to see its distribution:
 
 ```{r price_data_plots}
@@ -494,7 +491,6 @@ All reject $H_0$ with p-value$<2\times 10^{-16}$
 
 
 ## 2.13 Price by Region and Type
-
 The picture below shows the price with different region and type of house.
 
 ```{r price_type_region}
@@ -571,7 +567,6 @@ plot(mod6, which=2, sub.caption="Model 4 with Log(Price) Transformation")
 # 3 Linear Modelling
 
 ## 3.1 First Attempt at Linear Model
-
 In this first model, we set the regression model as: 
 Price ~ Rooms + Landsize + Distance + Bedroom2 + Bathroom + Car + BuildingArea + Lattitude + Longtitude + Propertycount + factor (Regionname).
 In order to determine whether the first model meets the requirements, the necessary VIF checks are useful. From the picture, we can know that the bedroom2 is not suitable for house price regression analysis. Thus, the second model regression analysis is modified with no bedroom2 variable.
@@ -598,7 +593,6 @@ text(which.max(mod.vifs), max(mod.vifs)-1, label=names(mod$coefficients[which.ma
 
 
 ## 3.2 Linear Model 2: Removed the Variable with Highest VIF
-
 In this model, we set the regression model as: 
 Price ~ Rooms + Landsize + Distance + Bathroom + Car + BuildingArea + Lattitude + Longtitude + Propertycount + factor (Regionname). 
 Similarly with Model 1, the VIF’s results shown as follows:
@@ -625,7 +619,6 @@ text(which.max(mod2.vifs)-3, max(mod2.vifs)-0.5, label=names(mod2$coefficients[w
 ```
 
 ## Model Coefficients
-
 In this model, the factor (Regionname) Western Metropolitan is the variable with highest VIF value. The model coefficients are shown as follows:
 
 
@@ -652,7 +645,6 @@ legend("topright",
 The p-value of Landsize is the highest, which is larger than 0.05. Thus, this variable should be dropped. 
 
 ## 3.3 Linear Model 3: Considered Interactions
-
 In this model, we analyze the interaction of rooms and region. The result is shown as follows: 
 
 
@@ -688,7 +680,6 @@ The p-value for model with interaction shows that all of the variables are suita
 
 
 ## 3.3 Linear Model 4: Removed Land Size
-
 From the consequence of model 2, the variable of landsize should be dropped. In this model, the model is set as:
 Price ~ Rooms + Distance + Bathroom + Car + BuildingArea + Lattitude + Longtitude + Propertycount + factor (Regionname).
 
@@ -774,7 +765,6 @@ plot(mod4, which=5, sub.caption="Model 4 without Outliers")
 
                                                                                                        
 # 5 Proposed Model 
-
 This final proposed model and details of related coefficients are shown as follows:
 
 
