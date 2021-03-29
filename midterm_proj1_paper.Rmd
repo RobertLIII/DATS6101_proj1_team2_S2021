@@ -416,9 +416,7 @@ ggplot(data.full,
 
 ### Test of Independence by Group (Pearson $\chi^2$)
 
-Type, Rooms, Regionname, SellerG
-
-Since anova was a no due to assumptions, we cut price into 5 uneven levels of at least 8 observations and performed Pearson Chi Squared.
+Since ANOVA testing for independence is inadvisable given the data distribution of selling price, Pearson $\chi^2$ testing is implemented. For this, price must be categorical; so, it is split into five uneven groups. This is done so that the highest price level have enough observations for the Pearson assumptions but does not include a large number of average priced homes. The variables being tested are seller (SellerG), number of rooms (Rooms), region (Regionname), and type of home (Type). 
 
 ```{r type_person}
 
@@ -439,11 +437,11 @@ $H_0$: All means equal by group
 
 All reject $H_0$ with p-value$<2\times 10^{-16}$
 
-The null hypothesis is that there is no difference in means among each level of the four categorical variables that we tests. As expected, we rejected null.
+The null hypothesis is that there is no difference in means among each level of the four categorical variables that we test. As expected, we reject the null at $\alpha=0.05$. We conclude that in each categorical variable, some level has at least one mean that is not equal to the the other levels. This is expected from both basic knowledge of housing markets and the box-plots above. 
 
 
 ## Price by Region and Type
-The picture below shows the price with different region and type of house.
+The picture below shows the price by region and type of home. Many of the same patterns hold. 
 
 ```{r price_type_region}
 
@@ -486,45 +484,18 @@ grid.arrange(p1,p2,p3, nrow=1)
 
 ```
 
-## Transform Data - Homogeneity                                                    
-This is a residual anlysis on the transformed log-data linear model. We may want to move this because it is on the modelling; it is just a model that we threw out because we relied on the robustness of linear regression since the pattern in the proposed model was visible but not super pronounced.
-```{r lm5_trans}
-# log transform
-# drop drop influence points
-mod6 <- lm(log(Price) ~ Rooms + Car
-          + Distance   + Car + BuildingArea
-          + Lattitude + Longtitude + Propertycount
-          + factor(Regionname) , data=data.train[!(rownames(data.train) %in% c("13246","2561", "1589")),])
-
-plot(mod6, which=1, sub.caption="Model 4 with Log(Price) Transformation")
-
-
-y.trans.pred<-predict(mod6)
-
-```
-
-## Transform Data - Normality    
-This is a qq plot used to check for normality on the residuals from 3.15. It's slightly improved from our proposed model but IMO, not enough to really push for the log transform.
-```{r lm5_trans_qq}
-# log transform
-# drop drop influence points
-mod6 <- lm(log(Price) ~ Rooms + Car
-          + Distance   + Car + BuildingArea
-          + Lattitude + Longtitude + Propertycount
-          + factor(Regionname) , data=data.train[!(rownames(data.train) %in% c("13246","2561", "1589")),])
-
-plot(mod6, which=2, sub.caption="Model 4 with Log(Price) Transformation")
-```
-
 
 # Linear Modelling
+
+For building a ordinary least squares (OLS), 70% of the dataset is randomly selected as training and 30% is used for final testing. Upon testing on the validation set, the model is no longer altered. 
+
 
 ## First Attempt at Linear Model
 In this first model, we set the regression model as: 
 Price ~ Rooms + Landsize + Distance + Bedroom2 + Bathroom + Car + BuildingArea + Lattitude + Longtitude + Propertycount + factor (Regionname).
-In order to determine whether the first model meets the requirements, the necessary VIF checks are useful. From the picture, we can know that the bedroom2 is not suitable for house price regression analysis. Thus, the second model regression analysis is modified with no bedroom2 variable.
+In order to determine whether the first model meets the requirements, the necessary variance inflation factor (VIF) checks are useful; we follow the convention to consider removal of variables with  VIF$>5$. From the plot below, we see that the bedroom2 is not suitable for house price regression analysis due to its high VIF. Thus, the second OLS regression model is modified with no bedroom2 variable.
 
-```{r lm1, results='asis'}
+```{r lm1, results='markdown'}
 
 mod <- lm(Price ~ Rooms + Landsize
           + Distance + Bedroom2 + Bathroom + Car + BuildingArea
@@ -548,9 +519,9 @@ text(which.max(mod.vifs), max(mod.vifs)-1, label=names(mod$coefficients[which.ma
 ## Linear Model 2: Removed the Variable with Highest VIF
 In this model, we set the regression model as: 
 Price ~ Rooms + Landsize + Distance + Bathroom + Car + BuildingArea + Lattitude + Longtitude + Propertycount + factor (Regionname). 
-Similarly with Model 1, the VIF’s results shown as follows:
+Similarly with Model 1, the VIF’s results shown below. As expected, we get essentially the same plot as before but note that a single level of region (Regionname) exceeds the VIF cutoff. We choose to keep it as all other levels are below the cutoff; furthermore, the VIF does not exceed 5 by some great amount. Hence Regionname is kept. 
 
-```{r lm2_vif, results='asis'}
+```{r lm2_vif, results='markdown'}
 # drop Bedroom2 - keep
 mod2 <-  lm(Price ~ Rooms + Landsize
           + Distance  + Bathroom + Car + BuildingArea
@@ -572,10 +543,10 @@ text(which.max(mod2.vifs)-3, max(mod2.vifs)-0.5, label=names(mod2$coefficients[w
 ```
 
 ## Model Coefficients
-In this model, the factor (Regionname) Western Metropolitan is the variable with highest VIF value. The model coefficients are shown as follows:
+In this model, the factor (Regionname) Western Metropolitan is the variable with highest VIF value. The p-values for the model coefficients are as shown below. Although, it may be a unusual to plot p-values for coefficients, this is done to quickly identify variables that may require additional investigation. 
 
 
-```{r lm2_mod, results='asis'}
+```{r lm2_mod, results='markdown'}
 
 mod2.summ <-summary(mod2)
 plot(mod2.summ$coefficients[,"Pr(>|t|)"],
@@ -595,13 +566,14 @@ legend("topright",
        legend="Region Factor Levels")
 ```
 
-The p-value of Landsize is the highest, which is larger than 0.05. Thus, this variable should be dropped. 
+The p-value of Landsize is the highest, which is larger than our assigned $\alpha=0.05$. Thus, this variable is dropped. Again, we choose to maintain Regionname as most levels are significant at this $\alpha$.
+
 
 ## Linear Model 3: Considered Interactions
 In this model, we analyze the interaction of rooms and region. The result is shown as follows: 
 
 
-```{r lm3, results='asis'}
+```{r lm3, results='markdown'}
 #  mod 2 with rooms*region interaction -  failed model, drop interaction
 mod3 <-  lm(Price ~ Rooms + Landsize
           + Distance  + Bathroom + Car + BuildingArea
@@ -629,39 +601,20 @@ legend("topright",
 
 ```
 
-The p-value for model with interaction shows that all of the variables are suitable and acceptable. 
+The p-value for the model suggests that the interaction is not significant and is discarded.  
 
 
-## Linear Model 4: Removed Land Size
-From the consequence of model 2, the variable of landsize should be dropped. In this model, the model is set as:
-Price ~ Rooms + Distance + Bathroom + Car + BuildingArea + Lattitude + Longtitude + Propertycount + factor (Regionname).
 
+## Linear Model 4: Removed Land Size and without Interaction
+Consequently from the above model analysis, the variable of landsize should be dropped and the Rooms-Regionname variable. The model is set as:
+Price ~ Rooms + Distance + Bathroom + Car + BuildingArea + Lattitude + Longtitude + Propertycount + factor (Regionname). 
 
-```{r lm4, results='asis'}
+```{r lm4_pvalues, results='markdown'}
 
-mod4 <-  lm(Price ~ Rooms                                                                                
+mod4 <-  lm(Price ~ Rooms
           + Distance  + Bathroom + Car + BuildingArea
           + Lattitude + Longtitude + Propertycount
-          + factor(Regionname) , data=data.train)
-
-
-
-mod4.vifs <- vif(mod4)
-
-plot(mod4.vifs,                                               
-     xlab="", ylab="VIF",
-     xaxt='n',
-     main="VIF Values for Forth Model")
-abline(h=5, col="blue")
-
-points(which.max(mod4.vifs), max(mod4.vifs), pch=23, col="red", bg="red")
-text(which.max(mod4.vifs)-3, max(mod4.vifs)-0.5, label=names(mod4$coefficients[which.max(mod4.vifs)+1]))
-```
-
-From the results of VIF Value for model 4, the factor (Regionname) Western Metropolitan should be dropped. At the same time, the VIF value of this variable is the only variable that exceeds 5.
-
-## Model 4 Coefficients
-```{r lm4_pvalues, results='asis'}
+          + factor(Regionname), data=data.train[!(rownames(data.train) %in% c("13246","2561", "1589")),])
 
 mod4.summ <- summary(mod4)
 
@@ -682,21 +635,34 @@ legend("topright",
 
 
 ```
+
+Again, we see a few p-values that exceed our $\alpha$ but these are just a few levels of Regionname which we have decided to keep. It is also important to note that $R^2_{adj}$ was generally stable around 0.55 with all of the above models. 
+
+
 # Residual Analysis
 
-## Homogeneity? No                                                              
+## Homogeneity? No     
+
+There does appear to be a slight yet notable cone shape of the residual verus fitted values, suggesting some heterogeneity of variance. A transform may be considered. 
+
 ```{r lm4_redids}
 
 plot(mod4, which=1, sub.caption="Model 4")
 ```
 
 ## Normal? Not Quite
+
+By qq-plot, there does appear some deviation from normality of the standardized residuals. Again, transformation or alternative modeling may be considered. 
+
 ```{r lm4_qq}
 
 plot(mod4, which=2, sub.caption="Model 4")                                                                                                                                                      
 ```
 
 ## Influence? Yes
+
+There does appear to be one high influence point with leverage nearing 1 and an outlier of more than 10 standard deviations. 
+
 ```{r lm4_lev}
 
 plot(mod4, which=5, sub.caption="Model 4")
@@ -705,11 +671,13 @@ plot(mod4, which=5, sub.caption="Model 4")
 
 
 ## Remove Influence Points
-Homogeneity and normal for Resididual Analysis about model 4 is implemented. The result shows that it's necessary to remove the influence points.
+
+Removal of the influence point is considered but does not greatly alter coefficients, their significance, or $R^2_{adj}$. Since the model is not so different, and the reason for high influence not sufficiently understood, the observations are not removed from the final model. 
+
 ```{r lm5}
                                
 # drop drop influence points
-mod5 <- mod4 <-  lm(Price ~ Rooms
+mod5 <-  lm(Price ~ Rooms
           + Distance  + Bathroom + Car + BuildingArea
           + Lattitude + Longtitude + Propertycount
           + factor(Regionname), data=data.train[!(rownames(data.train) %in% c("13246","2561", "1589")),])
@@ -717,12 +685,57 @@ mod5 <- mod4 <-  lm(Price ~ Rooms
 plot(mod4, which=5, sub.caption="Model 4 without Outliers")
 ```
 
+
+
+
+## Transform Data - Homogeneity                                                    
+This is a residual analysis on the transformed log-Price linear model: log(Price) ~ Rooms + Distance + Bathroom + Car + BuildingArea + Lattitude + Longtitude + Propertycount + factor (Regionname). 
+
+```{r lm5_trans}
+# log transform
+# drop drop influence points
+mod6 <- lm(log(Price) ~ Rooms + Car
+          + Distance   + Car + BuildingArea
+          + Lattitude + Longtitude + Propertycount
+          + factor(Regionname) , data=data.train[!(rownames(data.train) %in% c("13246","2561", "1589")),])
+
+plot(mod6, which=1, sub.caption="Model 4 with Log(Price) Transformation")
+
+
+y.trans.pred<-predict(mod6)
+
+```
+
+We do see improvement of the cone shape and now no discernable pattern appears. 
+
+## Transform Data - Normality    
+
+
+```{r lm5_trans_qq}
+# log transform
+# drop drop influence points
+mod6 <- lm(log(Price) ~ Rooms + Car
+          + Distance   + Car + BuildingArea
+          + Lattitude + Longtitude + Propertycount
+          + factor(Regionname) , data=data.train[!(rownames(data.train) %in% c("13246","2561", "1589")),])
+
+plot(mod6, which=2, sub.caption="Model 4 with Log(Price) Transformation")
+```
+
+The qq-plot shows some mild improvement using the transformed data. With the robustness of OLD regression, we will not include the log-transform model knowing that it will also lose interpretibilty for inferential purposes. 
+
                                                                                                        
 # Proposed Model 
-This final proposed model and details of related coefficients are shown as follows:
+
+This is the final proposed model and details of related coefficients are shown as follows:
+
 ``` {r prop_mod, results="markdown"}
 summ(mod4)
 ```
+
+Although the residual analysis is somewhat concerning, we rely on the robustness of OLS regression to recommend this model. No influence points are omitted. There are, however, a large number of missing values for many variables.   
+
+
 ## Testing $R^2$
 
 ```{r lm4_pred}
@@ -747,20 +760,22 @@ r.2 <- r2(y.pred[keeps], y.test[keeps])
 
 ```
 
+An alternative $R^2$ is used to validate the model. This is done on the testing set:
+
 $$ \begin{equation} R^2 = 1- \dfrac{RSS}{TSS} \end{equation}=0.441$$ 
 
-
+This is roughly inline with what we would expect since the final model has $R^@_{adj}=0.56$. Note that the large number of missing data are simply omitted from this value. 
 
 
 
 
 # Conclusion
-The previous analysis did not deal with outliers, and the processing of outliers may also have a certain effect on result optimization. Through the analysis of this data set, the content of linear regression was practiced, and the final effect was not bad. For the future, some useful method can be implemented, such as further explore log transformation, consider GLM with log link, what to do about factors with many levels (100’s)? deal with missing data and improve Prediction.
+The previous analysis did not deal with outliers, and the processing of outliers may also have a certain effect on result optimization. Through the analysis of this data set, the content of linear regression was practiced, and the final effect was interpretable even if it does not excel at prediction. For this, alternative modeling methods must be considered. A more granular analysis of price and dependency would also be informative. Furthermore, a large number of missing values hinders model building. 
 
 ## Future Work
 - Further explore log transformation                 
 - Consider GLM with log link
-- What to do about factors with many levels (100's)? 
+- Categorical variables with many levels
 - Missing data
 - Improve Prediction 
 
