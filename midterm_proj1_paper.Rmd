@@ -9,19 +9,7 @@ output:
      toc_float: true
      number_section: true
 ---
-# Introduction:
-Housing prices are an important indicator of the strength of the economy. House price prediction can help real estate developers determine the selling price of a house, allow buyers make informed choices about potential purchases, and be beneficial for property investors in determining price trends across different locations. 
-Hence having a simple predictive and inferential method to model housing prices can be of great significance to the financial market; however, predicting long-term housing prices has become a complex and challenging task. 
-This paper discusses our project on determining how different factors may affect home sales price by building linear models. 
-The data used in this project was collected in Melbourne, Australia in 2017. 
-Melbourne is a large metropolitan city with a strong real estate market in a region of Australia that experienced a 4.2 percent growth rate in property sales 2017. 
-We believe the factors that determine housing pricing in our model could have broad applications to other locations and countries.
- 
-Our project sought to answer the following questions:
-1. Understand if housing prices in Melbourne, Australia can be predicted using this dataset.
-2. Determine what variables have the greatest impact on housing price.
-3. Analyze the impacts of location, seller, and construction attributes of homes on the housing market in Melbourne, Australia.
- 
+
 
 
 
@@ -39,6 +27,7 @@ unloadPkg = function(pkg, character.only = FALSE) {
 }
 ```
 
+
 ```{r setup, include=FALSE}
 # some of common options (and the defaults) are: 
 # include=T, eval=T, echo=T, results='hide'/'asis'/'markup',..., collapse=F, warning=T, message=T, error=T, cache=T, fig.width=6, fig.height=4, fig.dim=c(6,4) #inches, fig.align='left'/'center','right', 
@@ -50,24 +39,6 @@ options(scientific=T, digits = 5)
 options(scipen=9, digits = 3) 
 # ‘scipen’: integer. A penalty to be applied when deciding to print numeric values in fixed or exponential notation.  Positive values bias towards fixed and negative towards scientific notation: fixed notation will be preferred unless it is more than ‘scipen’ digits wider.
 # use scipen=999 to prevent scientific notation at all times
-
-loadPkg("leaps")
-loadPkg("ggplot2")
-loadPkg("gridExtra")
-loadPkg("scales")
-loadPkg("heatmaply")
-loadPkg("Hmisc")
-loadPkg("faraway")
-loadPkg("jtools")
-
-set.seed(17)
-data.full <- read.csv("melb_data.csv")
-
-# create train and test data
-samps <- read.csv("sample.txt", sep=" ")
-
-data.train <- data.full[(samps$x),]
-data.test <- data.full[(-samps$x),]
 
 ```
 
@@ -159,74 +130,33 @@ xkablevif = function(model, title="VIFs of the model", digits = 3, pos="left", b
 }
 ```
 
-```{r outlierKD2}       
-# Fix outliers
-outlierKD2 <- function(df, var, rm=FALSE, boxplt=FALSE, histogram=TRUE, qqplt=FALSE, variable_name=deparse(substitute(var))) { 
-    #' Original outlierKD functino by By Klodian Dhana,
-    #' https://www.r-bloggers.com/identify-describe-plot-and-remove-the-outliers-from-the-dataset/
-    #' Modified to have third argument for removing outliers instead of interactive prompt, 
-    #' and after removing outlier, original df will not be changed. The function returns the a df, 
-    #' which can be saved as original df name if desired.
-    #' Also added QQ-plot in the output, with options to show/hide boxplot, histogram, qqplot.                                 
-    #' Check outliers, and option to remove them, save as a new dataframe. 
-    #' @param df The dataframe.                                          
-    #' @param var The variable in the dataframe to be checked for outliers
-    #' @param rm Boolean. Whether to remove outliers or not.          
-    #' @param boxplt Boolean. Whether to show the boxplot, before and after outliers removed.
-    #' @param histogram Boolean. Whether to show the histogram, before and after outliers removed.
-    #' @param qqplt Boolean. Whether to show the qqplot, before and after outliers removed.                                   
-    #' @param variable_name String. Variable name formatted for title.
-    #' @return The dataframe with outliers replaced by NA if rm==TRUE, or df if nothing changed               
-    #' @examples    
-    #' outlierKD2(mydf, height, FALSE, TRUE, TRUE, TRUE)
-    #' mydf = outlierKD2(mydf, height, TRUE, TRUE, TRUE, TRUE)
-    #' mydfnew = outlierKD2(mydf, height, TRUE)
-    dt = df # duplicate the dataframe for potential alteration
-    var_name <- eval(substitute(var),eval(dt))     
-    na1 <- sum(is.na(var_name))
-    m1 <- mean(var_name, na.rm = T)
-    par(mfrow=c(2, boxplt+histogram+qqplt), oma=c(0,0,3,0))
-    if (qqplt) { 
-      qqnorm(var_name, main = "With outliers")
-      qqline(var_name)
-    }
-    if (histogram) { hist(var_name, main="With outliers", xlab=NA, ylab=NA) }
-    if (boxplt) { boxplot(var_name, main="With outliers") }
 
-    outlier <- boxplot.stats(var_name)$out
-    mo <- mean(outlier)
-    var_name <- ifelse(var_name %in% outlier, NA, var_name)
-    if (qqplt) { 
-      qqnorm(var_name, main = "Without outliers")
-      qqline(var_name)
-    }
-    if (histogram) { hist(var_name, main="Without outliers", xlab=NA, ylab=NA) }
-    if (boxplt) { boxplot(var_name, main="Without outliers") }
-
-    title(paste("Outlier Check:", variable_name), outer=TRUE)
-    na2 <- sum(is.na(var_name))
-    cat("Outliers identified:", na2 - na1, "\n")
-    cat("Propotion (%) of outliers:", round((na2 - na1) / sum(!is.na(var_name))*100, 1), "\n")
-    cat("Mean of the outliers:", round(mo, 2), "\n")
-    m2 <- mean(var_name, na.rm = T)
-    cat("Mean without removing outliers:", round(m1, 2), "\n")
-    cat("Mean if we remove outliers:", round(m2, 2), "\n")
-    
-    # response <- readline(prompt="Do you want to remove outliers and to replace with NA? [yes/no]: ")
-    # if(response == "y" | response == "yes"){
-    if(rm){
-        dt[as.character(substitute(var))] <- invisible(var_name)
-        #assign(as.character(as.list(match.call())$dt), dt, envir = .GlobalEnv)
-        cat("Outliers successfully removed", "\n")
-        return(invisible(dt))
-    } else {
-        cat("Nothing changed", "\n")
-        return(invisible(df))
-    }
-}
+```{r stats_libs}
+loadPkg("leaps")
+loadPkg("ggplot2")
+loadPkg("gridExtra")
+loadPkg("scales")
+loadPkg("heatmaply")
+loadPkg("Hmisc")
+loadPkg("faraway")
+loadPkg("jtools")
 ```
 
-```{r create_ggplot_labes}
+
+```{r import_data}
+
+data.full <- read.csv("melb_data.csv")
+
+# create train and test data
+samps <- read.csv("sample.txt", sep=" ")
+
+data.train <- data.full[(samps$x),]
+data.test <- data.full[(-samps$x),]
+
+```
+
+
+```{r create_ggplot_labels}
 # factor level counts for legend
 counts <- function(variable){                      
                                   
@@ -242,19 +172,25 @@ counts <- function(variable){
 }
 
 ```
-# Exploratory Data Analysis (EDA)
-The following are excerpts and graphs from our exploratory data analysis. 
-This part of the project familiarizes the reader with our dataset's attributes as well as lays the foundation for the variables we will include in our linear model. 
-The results of our EDA will also inform the future direction of the project. We completed our EDA with the folowing goals in mind:
-
-## Goals
-1.	Understand which attributes of a home and its sale determine final sale price
-2.	Attempt to build a reasonable model for inference and/or prediction for final sale price
 
 
+# Introduction
+Housing prices are an important indicator of the strength of the economy. House price prediction can help real estate developers determine the selling price of a house, allow buyers make informed choices about potential purchases, and be beneficial for property investors in determining price trends across different locations. 
+Hence having a simple predictive and inferential method to model housing prices can be of great significance to the financial market; however, predicting long-term housing prices has become a complex and challenging task. 
+This paper discusses our project on determining how different factors may affect home sales price by building linear models. 
+The data used in this project was collected in Melbourne, Australia in 2017. 
+Melbourne is a large metropolitan city with a strong real estate market in a region of Australia that experienced a 4.2 percent growth rate in property sales 2017. 
+We believe the factors that determine housing pricing in our model could have broad applications to other locations and countries.
+ 
+Our project sought to answer the following questions:
+
+- Understand if housing prices in Melbourne, Australia can be predicted using this dataset.
+- Determine what variables have the greatest impact on housing price.
+- Analyze the impacts of location, seller, and construction attributes of homes on the housing market in Melbourne, Australia.
+ 
 
 ## The Melbourne Housing Snapshot Dataset
-The independent variables mainly reflect the situation of the house from three dimensions: a. what type; b. quality, grade; c. quantity, area.Before EDA, the details and introduction of the existing Melbourne house data variables are as follows:
+The independent variables mainly reflect the situation of the house from three dimensions: a. what type; b. quality, grade; c. quantity, area. Before exploratory data analysis, the details and introduction of the existing Melbourne house data variables are as follows:
 
 ```{r data_feats}                                                                                                                                                                                 
 
@@ -284,7 +220,6 @@ colnames(data.fixedname)[colnames(data.fixedname) %in% numerics] <- numerics.fix
   - Numeric: `r length(numerics)`
   - Categorical: `r nvar - length(numerics)`
                                                            
-## The Variables
 ```{r vars, results="markdown"}
 var.names <- c(names(data.full))
 
@@ -326,21 +261,29 @@ Lattitude, Longtitude: GPS location
 
 Suburb: Suburb name - 314 categories                                            
 
-## Summary of Price Statistics
+# Exploratory Data Analysis (EDA)
+The following are excerpts and graphs from our exploratory data analysis. 
+This part of the project familiarizes the reader with our dataset's attributes as well as lays the foundation for the variables we will include in our linear model. 
+The results of our EDA will also inform the future direction of the project. 
 
-Mean: `r dollar(mean(data.full$Price))`
+
+## Summary of Price Statistics
 
 SD: `r sqrt(var(data.full$Price))`
 
 `r xkablesummary( as.data.frame(data.full$Price), title=NULL)`
 
 ## Select Data Pairs
+
+By these scatter plots of selected numerical variables, we can see there are couple of potential outliers when it comes to home size, land size, and selling price. This does make it a bit difficult to discern patterns in some of the pairings. Nonetheless, there does appear to be an inkling of linear correlation which we will explore further. 
+
 ```{r pairs}
 pairs(data.full[numerics[c(2, 3, 7, 8, 12)]])
 ```
 
 ## Corrleations
-Due to the large number of feature columns in the dataset, it is difficult to grasp. Therefore, before further feature mining, take a look at which variables are highly correlated with House Price (mainly focusing on numeric variables). The result is shown as follows:
+Due to the large number of feature columns in the dataset, it is difficult to grasp all the pairings in linear correlations. Therefore, before further feature mining, take a look at which variables are highly correlated with House Price. The below heatmap is interactive if viewing in HTML. Hover over the specific coordinate to view the correlation coefficient and the p-value for that variable pair. 
+
 ```{r heatmap}
 
 data.corr <- rcorr(as.matrix(data.fixedname[numerics.fixed]))
@@ -357,41 +300,7 @@ hm <- heatmaply_cor(
 ```
 `r hm`
 
-We can draw conclusion from the above picture that the price has a positive relationship with the type of room, but has a negative relationship with distance. And there are also strong correlations between some variables, such as Rooms and Bedrooms, Rooms and Bathrooms, Bedrooms and Bathrooms, which may cause multicollinearity. We need to pay attention to feature selection.
-
-## Selling Price
-In order to forecast the sales price more reasonably, before making the forecast, there is a comparative analysis of its distribution. SalePrice is a predictor variable. Take a graph to see its distribution:
-
-```{r price_data_plots}
-
-
-layout(matrix(c(1,2,3), 1,3))
-hist(data.full$Price, col = "blue", xlab="Price (AUS$)", main=NULL)
-boxplot(data.full$Price, col = "red", ylab="Price (AUS$)")
-qqnorm(data.full$Price, col = "dark green", ylab="Price (AUS$)")
-qqline(data.full$Price)
-
-```
-
-Each point of a string of numbers in the data is a certain quantile of the data. Pair these points (called sample quantile points) with the corresponding theoretical quantiles to make a scatter plot. The data obeys the normal distribution, then the graph should look like a straight line, otherwise it does not obey the normal distribution. It can be seen from the distribution diagram of selling price that selling price does not follow a normal distribution. In the case of not obeying the normal distribution, a new method should be selected to change the data to obey the normal distribution. Thus, the log operation is implemented in selling price.
-
-## Log Selling Price
-
-```{r log_price_plots}
-layout(matrix(c(1,2,3), 1,3))
-hist(log(data.full$Price), col = "blue", xlab="log(Price)", main=NULL)
-boxplot(log(data.full$Price), col = "red", ylab="log(Price)")
-qqnorm(log(data.full$Price), col = "dark green", ylab="log(Price)")
-qqline(log(data.full$Price))
-
-logPrice.ttest <- t.test(log(data.full$Price), conf.level=0.95)
-
-Price.lower <- exp(logPrice.ttest$conf.int[1])
-Price.upper <- exp(logPrice.ttest$conf.int[2])
-
-```
-
-From the Q-Q plot of log selling price, we could draw that the graph looks like a straight line. Thus, log selling price obeys normal distribution.
+The general trajectory of most of these correlations should be unsurprising. One would expect a home with more rooms to be positively correlated with both number of bedrooms and price. Alternatively, distance from the central business district is slightly negatively correlated with price. And there are also strong correlations between some variables, such as Rooms and Bedrooms, Rooms and Bathrooms, Bedrooms and Bathrooms, which may be a concern for multicollinearity. This will guide our feature selection for linear regression and bear out in the significance and variance inflation within the attempted models. 
 
 ## Map of Melbourne Sales
 A visual analysis of the current housing sales distribution in Melbourne was carried out. The result is shown in the figure below.
@@ -407,9 +316,49 @@ ggplot(data.full) +
 
 It can be seen from the figure that the sales areas are mainly concentrated in Eastern metropolitan, Southern metropolitan, Northern Metropolitan, Western Metropolitan and South-Eastern metropolitan. Therefore, the fluctuation of housing prices will greatly affect these areas, and these areas account for about 5/6 of Melbourne.
 
-In the conclusion of the correlation analysis, the price is related to the region. In other words, the sale price of the house is also different in different regions. In addition, the price is also related to the number of rooms; the more rooms there are, the higher the price will be. Finally, housing prices are also related to the type of house. All the results are shown below:
 
-## Price by Region
+## Selling Price
+Selling price is the variable that we would like to predict and infer upon by linear modeling. So, let us further explore its distribution. 
+
+```{r price_data_plots}
+
+
+layout(matrix(c(1,2,3), 1,3))
+hist(data.full$Price, col = "blue", xlab="Price (AUS$)", main=NULL)
+boxplot(data.full$Price, col = "red", ylab="Price (AUS$)")
+qqnorm(data.full$Price, col = "dark green", ylab="Price (AUS$)")
+qqline(data.full$Price)
+
+```
+
+By histogram, box-plot, and qq-plot, selling price appears skewed from normal. This makes sense as no sales were less than \$85,000 and there is a theoretical hard stop on the left at \$0. Similarly, housing prices can be quite high without theoretical limit. That pattern is clearly displayed here. 
+
+The log transformed price is normally distributed; this can be seen in the histogram, boxplot, and qq-plot; all showing only very slight deviation from normal. Hence, selling price is log-normal. 
+
+
+```{r log_price_plots}
+layout(matrix(c(1,2,3), 1,3))
+hist(log(data.full$Price), col = "blue", xlab="log(Price)", main=NULL)
+boxplot(log(data.full$Price), col = "red", ylab="log(Price)")
+qqnorm(log(data.full$Price), col = "dark green", ylab="log(Price)")
+qqline(log(data.full$Price))
+
+logPrice.ttest <- t.test(log(data.full$Price), conf.level=0.95)
+
+Price.lower <- exp(logPrice.ttest$conf.int[1])
+Price.upper <- exp(logPrice.ttest$conf.int[2])
+
+```
+
+
+
+### Selling Price's Relationship to Select Categorical Variables
+
+We suspect location, seller, and type of home interacts with sale price. Furthermore, by the above heat-map, the price is correlated to number of rooms which can be treated as categorical; the more rooms there are, the higher the price.
+
+### Price by Region
+
+By box-plot, there does appear to be an dependence between region and price. Note that the data still appear non-normal and suspiciously log-normal. Although the number of observations in each level of region are sufficiently large, there is great variability in the size of each level. Western Victoria has only 32 sales but Southern Metropolitan had 4695. Since normality is not satisfied and with uneven sized levels, we cannot rely on the robustness of ANOVA to test for independence.  
 
 ```{r price_region}
 
@@ -427,7 +376,10 @@ ggplot(data.full,
 
 ```
 
-## Price by Number of Rooms (<10 Rooms)
+
+### Price by Number of Rooms (<10 Rooms)
+
+Due to the small size of levels of rooms greater than 9, they are omitted. Again, we can see data that one can suspect is log-normal. There appears to be in dependence based on the box-plot especially for homes with less than six rooms; this is less pronounced as number of rooms increases. Again, the size of the levels is highly uneven; hence, we cannot apply ANOVA testing for dependence in this case either.  
 
 ```{r price_rooms}
 
@@ -443,7 +395,9 @@ ggplot(subset(data.full, Rooms<10),
 ```
 
 
-## Price by Type of Home
+### Price by Type of Home
+
+The pattern of non-normal data and uneven level sizes repeats when price is conditioned on type of home (house, apartment, townhouse). So, again, ANOVA is not appropriate. 
 
 ```{r price_type}
 
@@ -460,8 +414,9 @@ ggplot(data.full,
 ```
 
 
-## Test of Independence by Group (Pearson $\chi^2$)
-### Type, Rooms, Regionname, SellerG
+### Test of Independence by Group (Pearson $\chi^2$)
+
+Type, Rooms, Regionname, SellerG
 
 Since anova was a no due to assumptions, we cut price into 5 uneven levels of at least 8 observations and performed Pearson Chi Squared.
 
