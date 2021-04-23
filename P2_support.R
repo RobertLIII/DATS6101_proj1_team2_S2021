@@ -6,6 +6,13 @@
 load_data <- function(train=T){
   data.full <- read.csv("melb_data.csv")
   
+  # replace NA with mean for suburb
+  data.full <- interpolate(data.full)
+  
+  # if suburb not possible, use column mean
+  data.full$YearBuilt[is.na(data.full$YearBuilt)] <- mean(data.full$YearBuilt, na.rm=TRUE)
+  data.full$BuildingArea[is.na(data.full$BuildingArea)] <- mean(data.full$BuildingArea, na.rm=TRUE)
+  
   # create categories
   data.full$Price.cuts <- as.character(cut(data.full$Price, 10))
   data.full$Price.cuts[data.full$Price > 3650000] <- "(3.65e+06,9.01e+06]"
@@ -34,6 +41,37 @@ load_data <- function(train=T){
 }
 
 
+interpolate <- function(data){
+  
+  for (i in 1:nrow(data)){
+    
+    if (is.na(data[i, "Car"])){
+      
+      suburb <- data[i, "Suburb"]
+      
+      data[i, "Car"] <- mean(subset(data, Suburb==suburb)$Car, na.rm=T)
+    }
+    
+    
+    if (is.na(data[i, "BuildingArea"])){
+      
+      suburb <- data[i, "Suburb"]
+      
+      data[i, "BuildingArea"] <- mean(subset(data, Suburb==suburb)$BuildingArea, na.rm=T)
+    }
+    
+    if (is.na(data[i, "YearBuilt"])){
+      
+      suburb <- data[i, "Suburb"]
+      
+      data[i, "YearBuilt"] <- mean(subset(data, Suburb==suburb)$YearBuilt, na.rm=T)
+    }
+    
+  }
+  
+  return(data)
+}
+
 
 r2 <- function(y.predict, y.actual=y.test){
   
@@ -46,54 +84,49 @@ r2 <- function(y.predict, y.actual=y.test){
 }
 
 
-
-
-
 # Trees and Forests
 loadPkg("randomForest")
 loadPkg("tree")
-trees <- function(){
-  
-  train <- load_data()
-  test <- load_data(F)
+
+trees <- function(train, test){
   
   # factors < 32 cats
-  model <-tree(Price.cuts~., data=subset(train, select=-c(Price, SellerG, Suburb, Date, Postcode, CouncilArea)), na.action=na.roughfix)
+  model <-tree(Price.cuts~., data=subset(train, select=-c(Price, SellerG, Suburb, Date, Postcode, CouncilArea)), na.action=na.pass)
   
   p <- predict(model, test, type="class")
   
-  sum(p == test$Price.cuts)
+  acc <- sum(p == test$Price.cuts)/length(p)
+  
+  return(acc)
 }
 
 
 
-forest.reg <- function(){
-  
-  train <- load_data()
-  test <- load_data(F)
-  
+forest.reg <- function(train, test){
+
   # factors < 53 cats
-  model <- randomForest(Price~., data=subset(train, select=-c(Price.cuts, SellerG, Suburb, Date, Postcode)), importance=T, na.action=na.roughfix, ntree=100)
-  
-  p <- predict(model, test)
-  
-  r2(p, test$Price)
-}
-
-
-
-
-forest.cat <- function(){
-  
-  train <- load_data()
-  test <- load_data(F)
-  
-  model <- randomForest(Price.cuts~., data=subset(train, select=-c(Price)), importance=T, na.action=na.omit, ntree=100)
+  model <- randomForest(Price~., data=subset(train, select=-c(Price.cuts, SellerG, Suburb, Date, Postcode)), importance=T, na.action=na.roughfix, ntree=200)
   
   p <- predict(model, test, na.action=na.roughfix)
   
+  r.2 <- r2(p, test$Price)
   
+  return(r.2)
 }
+
+
+forest.cat <- function(train, test){
+  
+  # factors < 53 cats
+  model <- randomForest(Price.cuts~., data=subset(train, select=-c(Price, SellerG, Suburb, Date, Postcode)), importance=T, na.action=na.roughfix, ntree=200)
+  
+  p <- predict(model, test, na.action=na.roughfix)
+  
+  acc <- sum(p == test$Price.cuts, na.rm=T)/length(p)
+  
+  return(acc)
+}
+
 
 unloadPkg(randomForest)
 unloadPkg(tree)
