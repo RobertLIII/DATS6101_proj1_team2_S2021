@@ -20,7 +20,6 @@ options(scipen=9, digits = 3)
 # ‘scipen’: integer. A penalty to be applied when deciding to print numeric values in fixed or exponential notation.  Positive values bias towards fixed and negative towards scientific notation: fixed notation will be preferred unless it is more than ‘scipen’ digits wider.
 # use scipen=999 to prevent scientific notation at all times
 
-source("general_support.R", local = knitr::knit_global())
 source("P2_support.R", local = knitr::knit_global())
 
 ```
@@ -35,6 +34,7 @@ source("P2_support.R", local = knitr::knit_global())
 # loadPkg("Hmisc")
 # loadPkg("faraway")
 # loadPkg("jtools")
+loadPkg("caret")
 ```
 
 
@@ -46,20 +46,96 @@ test <- load_data(F)
 
 ```
 
+## Dataset
+- Home Sales in 2017
+  - Location
+  - Construction
+  - Sale
+- Variables: 20
+  - Numeric: 12
+  - Categorical: 8
+  
+## Goals
+1.	Understand which attributes of a home and its sale determine final sale price
+2.	Attempt to build a reasonable model for inference and/or prediction for final sale price
+
+
+## Exploratory Data Analysis
+
+```{r eda, results='markup'}
+hist(test$Price)
+```
+
+Created 5 `Price` based categories
 
 
 
 
+## Tree
+```{r tree, results='markup'}
+loadPkg("tree")
 
 
+# factors < 32 cats
+mod.tree <-tree(factor(Price.cuts)~., data=subset(train, select=-c(Price, SellerG, Suburb, Date, Postcode, CouncilArea)))
+  
+p <- predict(mod.tree, test, type="class")
+  
+acc.tree <- sum(p == test$Price.cuts)/length(p)
+
+cm.tree <- confusionMatrix(p, test$Price.cuts)
+
+cm.tree$table
+
+```
 
 
+Overall Accuracy: `r acc.tree`
+
+Poor prediction at higher prices
 
 
+## Random Forest: Regression
+
+```{r RF_reg}
+loadPkg("randomForest")
+
+# factors < 53 cats
+mod.RF <- randomForest(Price~., data=subset(train, select=-c(Price.cuts, SellerG, Suburb, Date, Postcode)), importance=T, na.action=na.roughfix, ntree=200)
+  
+p <- predict(mod.RF , test)
+  
+r.2.RF <- r2(p, test$Price)
+```
+
+Trees: 200
+
+Variables: 5
+
+$R^2$ = `r r.2.RF`
+
+MSE = `r mean((p-test$Price)^2)`
 
 
+## Random Forest: Categorical
 
+```{r RF_cats, results='markup'}
+# factors < 53 cats
+mod.RF.cat <- randomForest(Price.cuts~., data=subset(train, select=-c(Price, SellerG, Suburb, Date, Postcode)), importance=T, na.action=na.roughfix, ntree=200)
+  
+p <- predict(mod.RF.cat, test, na.action=na.roughfix)
 
+acc.RF <- sum(p == test$Price.cuts, na.rm=T)/length(p)
+
+cm.RF <- confusionMatrix(p, test$Price.cuts)
+cm.RF$table
+```
+
+Trees: 200
+
+Variables: 5
+
+Overall Accuracy: `r acc.RF`
 
 
 ```{r close_stats_libs, include=F}
@@ -71,4 +147,7 @@ test <- load_data(F)
 # unloadPkg(Hmisc)
 # unloadPkg(faraway)
 # unloadPkg(jtools)
+unloadPkg(tree)
+unloadPkg(caret)
+unloadPkg(randomForest)
 ```

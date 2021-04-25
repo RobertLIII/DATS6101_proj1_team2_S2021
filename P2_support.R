@@ -1,4 +1,15 @@
 
+# use this function to conveniently load libraries and work smoothly with knitting
+# can add quietly=T option to the require() function
+# the loadPkg function essentially replaced/substituted two functions install.packages() and library() in one step.
+loadPkg = function(x) { if (!require(x,character.only=T, quietly =T)) { install.packages(x,dep=T,repos="http://cran.us.r-project.org"); if(!require(x,character.only=T)) stop("Package not found") } }
+
+# unload/detact package when done using it
+unloadPkg = function(pkg, character.only = FALSE) { 
+  if(!character.only) { pkg <- as.character(substitute(pkg)) } 
+  search_item <- paste("package", pkg,sep = ":") 
+  while(search_item %in% search()) { detach(search_item, unload = TRUE, character.only = TRUE) } 
+}
 
 
 
@@ -15,7 +26,11 @@ load_data <- function(train=T){
   
   # create categories
   data.full$Price.cuts <- as.character(cut(data.full$Price, 10))
-  data.full$Price.cuts[data.full$Price > 3650000] <- "(3.65e+06,9.01e+06]"
+  data.full$Price.cuts[data.full$Price > 7.61e+04 & data.full$Price <= 9.76e+05] <- 1
+  data.full$Price.cuts[data.full$Price > 9.76e+05 & data.full$Price <= 1.87e+06] <- 2
+  data.full$Price.cuts[data.full$Price > 1.87e+06 & data.full$Price <= 2.76e+06] <- 3
+  data.full$Price.cuts[data.full$Price > 2.76e+06 & data.full$Price <= 3.65e+06] <- 4
+  data.full$Price.cuts[data.full$Price > 3.65e+06] <- 5
   
   # convert to factors
   data.full[sapply(data.full, is.character)] <- lapply(data.full[sapply(data.full, is.character)], as.factor)
@@ -84,49 +99,3 @@ r2 <- function(y.predict, y.actual=y.test){
 }
 
 
-# Trees and Forests
-loadPkg("randomForest")
-loadPkg("tree")
-
-trees <- function(train, test){
-  
-  # factors < 32 cats
-  model <-tree(Price.cuts~., data=subset(train, select=-c(Price, SellerG, Suburb, Date, Postcode, CouncilArea)), na.action=na.pass)
-  
-  p <- predict(model, test, type="class")
-  
-  acc <- sum(p == test$Price.cuts)/length(p)
-  
-  return(acc)
-}
-
-
-
-forest.reg <- function(train, test){
-
-  # factors < 53 cats
-  model <- randomForest(Price~., data=subset(train, select=-c(Price.cuts, SellerG, Suburb, Date, Postcode)), importance=T, na.action=na.roughfix, ntree=200)
-  
-  p <- predict(model, test, na.action=na.roughfix)
-  
-  r.2 <- r2(p, test$Price)
-  
-  return(r.2)
-}
-
-
-forest.cat <- function(train, test){
-  
-  # factors < 53 cats
-  model <- randomForest(Price.cuts~., data=subset(train, select=-c(Price, SellerG, Suburb, Date, Postcode)), importance=T, na.action=na.roughfix, ntree=200)
-  
-  p <- predict(model, test, na.action=na.roughfix)
-  
-  acc <- sum(p == test$Price.cuts, na.rm=T)/length(p)
-  
-  return(acc)
-}
-
-
-unloadPkg(randomForest)
-unloadPkg(tree)

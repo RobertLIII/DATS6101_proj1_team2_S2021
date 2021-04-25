@@ -1,15 +1,4 @@
 
-# use this function to conveniently load libraries and work smoothly with knitting
-# can add quietly=T option to the require() function
-# the loadPkg function essentially replaced/substituted two functions install.packages() and library() in one step.
-loadPkg = function(x) { if (!require(x,character.only=T, quietly =T)) { install.packages(x,dep=T,repos="http://cran.us.r-project.org"); if(!require(x,character.only=T)) stop("Package not found") } }
-
-# unload/detact package when done using it
-unloadPkg = function(pkg, character.only = FALSE) { 
-  if(!character.only) { pkg <- as.character(substitute(pkg)) } 
-  search_item <- paste("package", pkg,sep = ":") 
-  while(search_item %in% search()) { detach(search_item, unload = TRUE, character.only = TRUE) } 
-}
 
 
 loadPkg("xtable")
