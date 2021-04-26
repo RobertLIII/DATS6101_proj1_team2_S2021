@@ -138,6 +138,24 @@ Variables: 5
 Overall Accuracy: `r acc.RF`
 
 
+```{r data, include=F}
+set.seed(17)
+
+train <- load_data(T)
+test <- load_data(F)
+
+```
+
+```{r tree, include=FALSE}
+train_tree <- trees(train=train, test=test)
+```
+
+```{r randomForest, include= FALSE}
+forest_reg_r2 <- forest.reg(train = train, test = test)
+forest_cat_acc <- forest.cat(train = train, test = test)
+```
+
+
 ```{r close_stats_libs, include=F}
 # unloadPkg(leaps)
 # unloadPkg(ggplot2)
