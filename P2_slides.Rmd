@@ -138,6 +138,13 @@ Variables: 5
 Overall Accuracy: `r acc.RF`
 
 
+
+
+
+
+
+
+
 ```{r data, include=F}
 set.seed(17)
 
