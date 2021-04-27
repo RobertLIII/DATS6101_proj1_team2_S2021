@@ -68,7 +68,17 @@ hist(test$Price)
 
 Created 5 `Price` based categories
 
+## model selection
+```{r}
+library(dplyr)
+df<-data.frame(read.csv("melb_data.csv"))
+df1<-select(df,Price,Distance,Rooms,Bedroom2,Bathroom,Car,Landsize,Lattitude,Longtitude,Propertycount,BuildingArea,YearBuilt)
+loadPkg("leaps")
+reg.best5 <- regsubsets(Price~. , data = df1, nvmax = 5, nbest = 1, method = "exhaustive")
+plot(reg.best10, scale = "bic", main = "BIC")
 
+```
+The best model is based on five variables:Distance, Rooms, Latitude, Buildingarea, Yearbuilt 
 
 
 ## Tree
