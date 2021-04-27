@@ -26,7 +26,7 @@ source("P2_support.R", local = knitr::knit_global())
 
 
 ```{r stats_libs, include=F}
-# loadPkg("leaps")
+loadPkg("leaps")
 # loadPkg("ggplot2")
 # loadPkg("gridExtra")
 # loadPkg("scales")
@@ -35,11 +35,13 @@ source("P2_support.R", local = knitr::knit_global())
 # loadPkg("faraway")
 # loadPkg("jtools")
 loadPkg("caret")
+
 ```
 
 
 
 ```{r data, include=F}
+# run this chunk to load data so that we all use same data for training/testing
 
 train <- load_data()
 test <- load_data(F)
@@ -66,19 +68,104 @@ test <- load_data(F)
 hist(test$Price)
 ```
 
+
+## New for Project 2
+
 Created 5 `Price` based categories
 
-## model selection
-```{r}
-library(dplyr)
-df<-data.frame(read.csv("melb_data.csv"))
-df1<-select(df,Price,Distance,Rooms,Bedroom2,Bathroom,Car,Landsize,Lattitude,Longtitude,Propertycount,BuildingArea,YearBuilt)
-loadPkg("leaps")
+Imputed missing data based on suburb
+
+## Linear Model Selection
+```{r }
+loadPkg("dplyr")
+
+# df<-data.frame(read.csv("melb_data.csv"))
+
+df1<-select(train,
+            Price, Distance, Rooms, Bedroom2, Bathroom, Car, 
+            Landsize, Lattitude, Longtitude, 
+            Propertycount, BuildingArea, YearBuilt)
+
 reg.best5 <- regsubsets(Price~. , data = df1, nvmax = 5, nbest = 1, method = "exhaustive")
-plot(reg.best10, scale = "bic", main = "BIC")
+
+plot(reg.best5, scale = "bic", main = "BIC")
 
 ```
-The best model is based on five variables:Distance, Rooms, Latitude, Buildingarea, Yearbuilt 
+
+The best model is based on five variables: `Distance`, `Rooms`, `Lattitude`, `BuildingArea`, `Yearbuilt` 
+
+
+
+
+
+## Regulization: Lasso regression
+
+```{r regularization process for data preparation, include= FALSE}
+# data for trainning model
+train.X <- data.matrix(train[,-which(names(train) %in% c("Price", "Price.cuts"))])
+train.y <- data.matrix(log(train$Price))
+
+# data for testing model
+test.X <- data.matrix(test[,-which(names(test) %in% c("Price", "Price.cuts"))])
+test.y <- data.matrix(log(test$Price))
+
+```
+
+
+```{r lasso, results='markup'}
+loadPkg("glmnet")
+
+lasso <- cv.glmnet(x = train.X, y = train.y, nfolds = 10)
+
+plot(lasso)
+
+```
+
+
+
+```{r coef in lasso regression, results='markup'}
+
+coef(lasso, s = 'lambda.min', exact = TRUE)
+min(lasso$cvm)
+
+```
+
+
+
+From the coefficient of lasso regression model, the variables of Rooms,Type, Distance, Postcode,  Bathroom, YearBuilt, Latitude, and Longtitude are related with responsive variable Price.
+
+
+```{r lasso fit and predict, include=TRUE, results='markup'}
+set.seed(999)
+lasso_pred <- as.numeric(exp(predict(lasso, newx = test.X, s = "lambda.min"))-1)
+hist(lasso_pred, main="Histogram of Lasso Predictions", xlab = "Predictions")
+
+mse_lasso_1 = sum((lasso_pred-exp(test.y))^2)/length(test.y)
+plot(exp(test.y),lasso_pred,xlab="True  price",ylab="Predicted price",
+     main="Prediction using Lasso regression")
+
+text(-1,3,substitute(r^2 == r2,list(r2=cor(test.y,lasso_pred))),adj=0)
+text(-1,2.7,substitute(MSE == r2,list(r2=mse_lasso_1)),adj=0)
+abline(0,1)
+
+```
+
+
+
+```{r predict with normalized price, include= TRUE, results='markup'}
+lasso_fit = glmnet(train.X,train.y,alpha = 1,lambda = lasso$lambda.min)
+pred.y = predict(lasso_fit,test.X)
+
+mse_lasso = sum((pred.y-test.y)^2)/length(test.y)
+
+plot(test.y,pred.y,xlab="True normalized price",ylab="Predicted normalized price",
+     main="Prediction using Lasso regression")
+text(-1,3,substitute(r^2 == r2,list(r2=cor(test.y,pred.y))),adj=0)
+text(-1,2.7,substitute(MSE == r2,list(r2=mse_lasso)),adj=0)
+abline(0,1)
+```
+
+
 
 
 ## Tree
@@ -87,7 +174,8 @@ loadPkg("tree")
 
 
 # factors < 32 cats
-mod.tree <-tree(factor(Price.cuts)~., data=subset(train, select=-c(Price, SellerG, Suburb, Date, Postcode, CouncilArea)))
+mod.tree <-tree(factor(Price.cuts)~., 
+                data=subset(train, select=-c(Price, SellerG, Suburb, Date, Postcode, CouncilArea)))
   
 p <- predict(mod.tree, test, type="class")
   
@@ -111,9 +199,11 @@ Poor prediction at higher prices
 loadPkg("randomForest")
 
 # factors < 53 cats
-mod.RF <- randomForest(Price~., data=subset(train, select=-c(Price.cuts, SellerG, Suburb, Date, Postcode)), importance=T, na.action=na.roughfix, ntree=200)
+mod.RF <- randomForest(Price~., 
+                       data=subset(train, select=-c(Price.cuts, SellerG, Suburb, Date, Postcode)), 
+                       importance=T, ntree=200)
   
-p <- predict(mod.RF , test)
+p <- predict(mod.RF, test)
   
 r.2.RF <- r2(p, test$Price)
 ```
@@ -131,9 +221,11 @@ MSE = `r mean((p-test$Price)^2)`
 
 ```{r RF_cats, results='markup'}
 # factors < 53 cats
-mod.RF.cat <- randomForest(Price.cuts~., data=subset(train, select=-c(Price, SellerG, Suburb, Date, Postcode)), importance=T, na.action=na.roughfix, ntree=200)
+mod.RF.cat <- randomForest(Price.cuts~., 
+                           data=subset(train, select=-c(Price, SellerG, Suburb, Date, Postcode)), 
+                           importance=T, ntree=200)
   
-p <- predict(mod.RF.cat, test, na.action=na.roughfix)
+p <- predict(mod.RF.cat, test)
 
 acc.RF <- sum(p == test$Price.cuts, na.rm=T)/length(p)
 
@@ -148,100 +240,41 @@ Variables: 5
 Overall Accuracy: `r acc.RF`
 
 
+<!-- ```{r data, include=F} -->
+<!-- set.seed(17) -->
+
+<!-- train <- load_data(T) -->
+<!-- test <- load_data(F) -->
+
+<!-- ``` -->
+
+<!-- ```{r tree, include=FALSE} -->
+<!-- train_tree <- trees(train=train, test=test) -->
+<!-- ``` -->
+
+<!-- ```{r randomForest, include= FALSE} -->
+<!-- forest_reg_r2 <- forest.reg(train = train, test = test) -->
+<!-- forest_cat_acc <- forest.cat(train = train, test = test) -->
+<!-- ``` -->
+
+
+<!-- ```{r data, include=F} -->
+<!-- set.seed(17) -->
+
+<!-- train <- load_data(T) -->
+<!-- test <- load_data(F) -->
+
+<!-- ``` -->
 
 
 
 
 
 
-
-
-```{r data, include=F}
-set.seed(17)
-
-train <- load_data(T)
-test <- load_data(F)
-
-```
-
-```{r tree, include=FALSE}
-train_tree <- trees(train=train, test=test)
-```
-
-```{r randomForest, include= FALSE}
-forest_reg_r2 <- forest.reg(train = train, test = test)
-forest_cat_acc <- forest.cat(train = train, test = test)
-```
-
-
-```{r data, include=F}
-set.seed(17)
-
-train <- load_data(T)
-test <- load_data(F)
-
-```
-
-## Regulization: Lasso regression
-
-```{r regularization process for data preparation, include= FALSE}
-# data for trainning model
-train.X <- data.matrix(train[,-which(names(train) %in% c("Price", "Price.cuts"))])
-train.y <- data.matrix(log(train$Price))
-
-# data for testing model
-test.X <- data.matrix(test[,-which(names(test) %in% c("Price", "Price.cuts"))])
-test.y <- data.matrix(log(test$Price))
-
-```
-
-```{r lasso }
-lasso <- cv.glmnet(x = train.X, y = train.y, nfolds = 10)
-plot(lasso)
-
-```
-
-
-```{r coef in lasso regression }
-coef(lasso, s = 'lambda.min', exact = TRUE)
-min(lasso$cvm)
-
-```
-
-From the coefficient of lasso regression model, the variables of Rooms,Type, Distance, Postcode,  Bathroom,YearBuilt, Lattitude, Longtitude are related with responsive variabel Price.
-
-
-```{r lasso fit and predict, include=TRUE}
-set.seed(999)
-lasso_pred <- as.numeric(exp(predict(lasso, newx = test.X, s = "lambda.min"))-1)
-hist(lasso_pred, main="Histogram of Lasso Predictions", xlab = "Predictions")
-
-mse_lasso_1 = sum((lasso_pred-exp(test.y))^2)/length(test.y)
-plot(exp(test.y),lasso_pred,xlab="True  price",ylab="Predicted price",
-     main="Prediction using Lasso regression")
-
-text(-1,3,substitute(r^2 == r2,list(r2=cor(test.y,lasso_pred))),adj=0)
-text(-1,2.7,substitute(MSE == r2,list(r2=mse_lasso_1)),adj=0)
-abline(0,1)
-
-```
-
-```{r predict with normalized price, include= TRUE}
-lasso_fit = glmnet(train.X,train.y,alpha = 1,lambda = lasso$lambda.min)
-pred.y = predict(lasso_fit,test.X)
-
-mse_lasso = sum((pred.y-test.y)^2)/length(test.y)
-
-plot(test.y,pred.y,xlab="True normalized price",ylab="Predicted normalized price",
-     main="Prediction using Lasso regression")
-text(-1,3,substitute(r^2 == r2,list(r2=cor(test.y,pred.y))),adj=0)
-text(-1,2.7,substitute(MSE == r2,list(r2=mse_lasso)),adj=0)
-abline(0,1)
-```
 
 
 ```{r close_stats_libs, include=F}
-# unloadPkg(leaps)
+unloadPkg(leaps)
 # unloadPkg(ggplot2)
 # unloadPkg(gridExtra)
 # unloadPkg(scales)
@@ -252,4 +285,6 @@ abline(0,1)
 unloadPkg(tree)
 unloadPkg(caret)
 unloadPkg(randomForest)
+unloadPkg(dplyr)
+unloadPkg(glmnet)
 ```
