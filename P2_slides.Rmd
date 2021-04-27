@@ -75,7 +75,10 @@ Created 5 `Price` based categories
 
 Imputed missing data based on suburb
 
-## Linear Model Selection
+
+
+
+## Linear Model Variable Selection
 ```{r }
 loadPkg("dplyr")
 
@@ -122,6 +125,7 @@ plot(lasso)
 ```
 
 
+## Hyperparamter Optimization
 
 ```{r coef in lasso regression, results='markup'}
 
@@ -130,10 +134,10 @@ min(lasso$cvm)
 
 ```
 
+From the coefficient of lasso regression model, the variables of `Rooms`, `Type`, `Distance`, `Postcode`,  `Bathroom`, `YearBuilt`, `Lattitude`, and `Longtitude` are related with responsive variable `Price`.
 
 
-From the coefficient of lasso regression model, the variables of Rooms,Type, Distance, Postcode,  Bathroom, YearBuilt, Latitude, and Longtitude are related with responsive variable Price.
-
+# Lasso Results
 
 ```{r lasso fit and predict, include=TRUE, results='markup'}
 set.seed(999)
