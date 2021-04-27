@@ -84,7 +84,7 @@ loadPkg("dplyr")
 
 # df<-data.frame(read.csv("melb_data.csv"))
 
-df1<-select(train,
+df1 <- select(train,
             Price, Distance, Rooms, Bedroom2, Bathroom, Car, 
             Landsize, Lattitude, Longtitude, 
             Propertycount, BuildingArea, YearBuilt)
@@ -93,9 +93,16 @@ reg.best5 <- regsubsets(Price~. , data = df1, nvmax = 5, nbest = 1, method = "ex
 
 plot(reg.best5, scale = "bic", main = "BIC")
 
+mod.select <- lm(Price ~ Distance + Rooms + Lattitude + BuildingArea + YearBuilt, data=train)
+
+p.lm <- predict(mod.select, test)
+
+r.2.lm <- r2(p.lm, test$Price)
+
+mse.lm <- mean((p.lm - test$Price)^2)
 ```
 
-The best model is based on five variables: `Distance`, `Rooms`, `Lattitude`, `BuildingArea`, `Yearbuilt` 
+The best model is based on five variables: `Distance`, `Rooms`, `Lattitude`, `BuildingArea`, `YearBuilt` 
 
 
 
@@ -125,26 +132,34 @@ plot(lasso)
 ```
 
 
-## Hyperparamter Optimization
+## Coefficients
 
-```{r coef in lasso regression, results='markup'}
+```{r coef in lasso regression}
 
 coef(lasso, s = 'lambda.min', exact = TRUE)
 min(lasso$cvm)
 
 ```
 
-From the coefficient of lasso regression model, the variables of `Rooms`, `Type`, `Distance`, `Postcode`,  `Bathroom`, `YearBuilt`, `Lattitude`, and `Longtitude` are related with responsive variable `Price`.
+From the coefficient of lasso regression model, the variables of `Rooms`, `Type`, `Distance`, `Postcode`,  `Bathroom`, `YearBuilt`, `Lattitude`, and `Longtitude` are related with response variable `Price`.
 
 
-# Lasso Results
+## Lasso Results
 
-```{r lasso fit and predict, include=TRUE, results='markup'}
+```{r lasso fit, include=TRUE, results='markup'}
 set.seed(999)
 lasso_pred <- as.numeric(exp(predict(lasso, newx = test.X, s = "lambda.min"))-1)
 hist(lasso_pred, main="Histogram of Lasso Predictions", xlab = "Predictions")
 
 mse_lasso_1 = sum((lasso_pred-exp(test.y))^2)/length(test.y)
+
+r.2.lasso_1 <- r2(lasso_pred, test$Price)
+```
+
+## Lasso Prediction
+
+```{r lasso predict, include=TRUE, results='markup'}
+
 plot(exp(test.y),lasso_pred,xlab="True  price",ylab="Predicted price",
      main="Prediction using Lasso regression")
 
@@ -155,18 +170,21 @@ abline(0,1)
 ```
 
 
+## Lasso Results: Normalized
 
 ```{r predict with normalized price, include= TRUE, results='markup'}
 lasso_fit = glmnet(train.X,train.y,alpha = 1,lambda = lasso$lambda.min)
 pred.y = predict(lasso_fit,test.X)
 
-mse_lasso = sum((pred.y-test.y)^2)/length(test.y)
+mse_lasso = mean((exp(pred.y)-exp(test.y))^2)
 
 plot(test.y,pred.y,xlab="True normalized price",ylab="Predicted normalized price",
      main="Prediction using Lasso regression")
 text(-1,3,substitute(r^2 == r2,list(r2=cor(test.y,pred.y))),adj=0)
 text(-1,2.7,substitute(MSE == r2,list(r2=mse_lasso)),adj=0)
 abline(0,1)
+
+r.2.lasso_2 <- r2(exp(pred.y), test$Price)
 ```
 
 
@@ -207,9 +225,11 @@ mod.RF <- randomForest(Price~.,
                        data=subset(train, select=-c(Price.cuts, SellerG, Suburb, Date, Postcode)), 
                        importance=T, ntree=200)
   
-p <- predict(mod.RF, test)
+p.RF_reg <- predict(mod.RF, test)
   
-r.2.RF <- r2(p, test$Price)
+r.2.RF <- r2(p.RF_reg, test$Price)
+
+mse.RF <- mean((p.RF_reg - test$Price)^2)
 ```
 
 Trees: 200
@@ -218,7 +238,7 @@ Variables: 5
 
 $R^2$ = `r r.2.RF`
 
-MSE = `r mean((p-test$Price)^2)`
+MSE = `r mse.RF`
 
 
 ## Random Forest: Categorical
