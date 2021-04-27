@@ -290,7 +290,89 @@ Overall Accuracy: `r acc.RF`
 
 <!-- ``` -->
 
+## KNN Model
 
+```{r}
+#Preparing Training data
+train<-train[,c(21,2,12,8,14,17,18,20,19)]
+train$Rooms<-as.factor(train$Rooms)
+
+#Creating Dummy Variables for Categorical Variables
+loadPkg('fastDummies')
+train <- dummy_cols(train, select_columns = 'Rooms')
+train <- dummy_cols(train, select_columns = 'Regionname')
+
+train<-train[,-c(2,9)]
+
+#Scaling Numeric Variables
+train$Car<- as.numeric(scale(train$Car, center = TRUE, scale = TRUE))
+train$Distance<- as.numeric(scale(train$Distance, center = TRUE, scale = TRUE))
+train$BuildingArea<- as.numeric(scale(train$BuildingArea, center = TRUE, scale = TRUE))
+train$Lattitude<- as.numeric(scale(train$Lattitude, center = TRUE, scale = TRUE))
+train$Longtitude<- as.numeric(scale(train$Longtitude, center = TRUE, scale = TRUE))
+train$Propertycount<- as.numeric(scale(train$Propertycount, center = TRUE, scale = TRUE))
+
+
+Rooms_10<-rep(0,nrow(train))
+train$Rooms_10<-Rooms_10
+
+
+
+#Preparing Testing data
+test<-test[,c(21,2,12,8,14,17,18,20,19)]
+test$Rooms<-as.factor(test$Rooms)
+
+#Creating Dummy Variables for Categorical Variables
+test <- dummy_cols(test, select_columns = 'Rooms')
+test <- dummy_cols(test, select_columns = 'Regionname')
+
+test<-test[,-c(2,9)]
+
+#Scaling Numeric Variables
+test$Car<- as.numeric(scale(test$Car, center = TRUE, scale = TRUE))
+test$Distance<- as.numeric(scale(test$Distance, center = TRUE, scale = TRUE))
+test$BuildingArea<- as.numeric(scale(test$BuildingArea, center = TRUE, scale = TRUE))
+test$Lattitude<- as.numeric(scale(test$Lattitude, center = TRUE, scale = TRUE))
+test$Longtitude<- as.numeric(scale(test$Longtitude, center = TRUE, scale = TRUE))
+test$Propertycount<- as.numeric(scale(test$Propertycount, center = TRUE, scale = TRUE))
+
+
+
+#Labels
+trainLabels <- train[, 1]
+testLabels <- test[, 1]
+
+```
+
+```{r,results='markup'}
+loadPkg("FNN")
+
+#Model with best total accuracy
+mel_pred <- knn(train =train[,-1], test = test[,-1], cl=trainLabels, k=13, prob=T)
+
+loadPkg("caret") 
+cm = confusionMatrix(mel_pred, reference = testLabels )
+ResultDf = data.frame( k=numeric(0), Total.Accuracy= numeric(0), row.names = NULL )
+ResultDf<-ResultDf[nrow(ResultDf)+1,]
+
+ResultDf$k<-13
+ResultDf$Total.Accuracy<-cm$overall['Accuracy']
+rownames(ResultDf)<-1
+
+```
+
+```{r, results="asis"}
+xkabledply(ResultDf, "Total Accuracy Summary")
+```
+ 
+```{r}
+loadPkg("pROC")
+knn_prob=attributes(mel_pred)$prob
+test$knn_prob=knn_prob
+h1 <- roc(Price.cuts~knn_prob, data=test)
+auc(h1)
+plot(h1)
+```
 
 
 
@@ -311,4 +393,9 @@ unloadPkg(caret)
 unloadPkg(randomForest)
 unloadPkg(dplyr)
 unloadPkg(glmnet)
+unloadPkg(FNN)
+unloadPkg(caret)
+unloadPkg(pROC)
+unloadPkg(fastDummies)
 ```
+
