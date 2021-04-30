@@ -156,6 +156,13 @@ train <- load_data()
 test <- load_data(F)
 
 ```
+# Introduction
+
+
+## Goals
+1.	Understand which attributes of a home and its sale determine final sale price
+2.	Attempt to build a reasonable model for inference and/or prediction for final sale price
+
 
 ## Dataset
 - Home Sales in 2017
@@ -166,9 +173,6 @@ test <- load_data(F)
   - Numeric: 12
   - Categorical: 8
   
-## Goals
-1.	Understand which attributes of a home and its sale determine final sale price
-2.	Attempt to build a reasonable model for inference and/or prediction for final sale price
 
 
 ## Exploratory Data Analysis
@@ -187,7 +191,7 @@ Imputed missing data based on suburb
 
 
 
-## Linear Model Variable Selection
+# Linear Model Variable Selection
 ```{r }
 loadPkg("dplyr")
 
@@ -216,9 +220,9 @@ The best model is based on five variables: `Distance`, `Rooms`, `Lattitude`, `Bu
 
 
 
-
-## Regulization: Lasso regression
-
+# Regularization
+## Lasso regression
+### Lasso Model
 ```{r regularization process for data preparation, include= FALSE}
 # data for trainning model
 train.X <- data.matrix(train[,-which(names(train) %in% c("Price", "Price.cuts"))])
@@ -241,7 +245,7 @@ plot(lasso)
 ```
 
 
-## Coefficients
+### Coefficients
 
 ```{r coef in lasso regression}
 
@@ -253,7 +257,7 @@ min(lasso$cvm)
 From the coefficient of lasso regression model, the variables of `Rooms`, `Type`, `Distance`, `Postcode`,  `Bathroom`, `YearBuilt`, `Lattitude`, and `Longtitude` are related with response variable `Price`.
 
 
-## Lasso Results
+### Lasso Results
 
 ```{r lasso fit, include=TRUE, results='markup'}
 set.seed(999)
@@ -265,7 +269,7 @@ mse_lasso_1 = sum((lasso_pred-exp(test.y))^2)/length(test.y)
 r.2.lasso_1 <- r2(lasso_pred, test$Price)
 ```
 
-## Lasso Prediction
+### Lasso Prediction
 
 ```{r lasso predict, include=TRUE, results='markup'}
 
@@ -299,6 +303,10 @@ r.2.lasso_2 <- r2(exp(pred.y), test$Price)
 
 
 
+
+
+# Tree and Random Forest 
+
 ## Tree
 ```{r tree, results='markup'}
 loadPkg("tree")
@@ -319,13 +327,15 @@ cm.tree$table
 
 ```
 
+Decision trees are usually an easily understood way to associate predictors with an outcome variable. The tree is composed of nodes that represent binary choices based on the dataset variables. When the predictor variable is continuous, the binary decision is a cutoff on the interval of the original variable. Unfortunately, factors with many levels may bias the decision tree to include that variable (Deng, 2011). Considering that some of our categorical variable had many levels, this is a concern for our dataset. Furthermore, the `tree()` function in R only allows variables with up to 32 levels so some variables are excluded from consideration (`SellerG`, `Suburb`, `Date`, `Postcode`, `CouncilArea`). Because of the inclusion of these many-leveled factors even with the worst offenders excluded along with the less descriptive coding of levels, another common benefit of trees is lost to us. Usually, decision trees are easily understood visually but the visualization of this tree is not very helpful. Ultimately, this method gives a middling 
 
-Overall Accuracy: `r acc.tree`
-
-Poor prediction at higher prices
+An issue more specific to our dataset is the log-normal distribution of the `Price` data. When splitting the variable into categories, the top five categories were condensed into the top two. This allows each price category to have a reasonable number of observations without making the highest category start its interval at a value more reasonably and colloquially described as average. This places a large majority of the observations in the lowest two categories. Hence, the tree model is able to obtain reasonable accuracy (0.704) by only populating predictions within those lower two categories. So, the model is a bit overfitted and has no prediction ability in the higher prices. 
 
 
-## Random Forest: Regression
+
+## Random Forest
+
+### Random Forest: Regression
 
 ```{r RF_reg}
 loadPkg("randomForest")
@@ -342,16 +352,9 @@ r.2.RF <- r2(p.RF_reg, test$Price)
 mse.RF <- mean((p.RF_reg - test$Price)^2)
 ```
 
-Trees: 200
+One way to minimize the overfitting of the single tree model to create many trees and take the mean of the outputs predicted from each tree. This is called a random forest model. For our project, we created a random forest that uses 200 trees and 5 variables per tree. Again, the `randomForest()` function in R limits the levels of factors at 53; so (`SellerG`, `Suburb`, `Date`, `Postcode`) are excluded. This greatly improved prediction variance explained ($R^2$ = 0.809) on the test set from previous attempts. Likewise, MSE also improved. 
 
-Variables: 5
-
-$R^2$ = `r r.2.RF`
-
-MSE = `r mse.RF`
-
-
-## Random Forest: Categorical
+### Random Forest: Categorical
 
 ```{r RF_cats, results='markup'}
 # factors < 53 cats
@@ -367,41 +370,15 @@ mod.RF.cat$confusion
 
 ```
 
-Trees: 200
-
-Variables: 5
-
-Overall Accuracy: `r acc.RF`
-
-
-<!-- ```{r data, include=F} -->
-<!-- set.seed(17) -->
-
-<!-- train <- load_data(T) -->
-<!-- test <- load_data(F) -->
-
-<!-- ``` -->
-
-<!-- ```{r tree, include=FALSE} -->
-<!-- train_tree <- trees(train=train, test=test) -->
-<!-- ``` -->
-
-<!-- ```{r randomForest, include= FALSE} -->
-<!-- forest_reg_r2 <- forest.reg(train = train, test = test) -->
-<!-- forest_cat_acc <- forest.cat(train = train, test = test) -->
-<!-- ``` -->
-
-
-<!-- ```{r data, include=F} -->
-<!-- set.seed(17) -->
-
-<!-- train <- load_data(T) -->
-<!-- test <- load_data(F) -->
-
-<!-- ``` -->
+This is similar to the regression random forest but uses the mode of the predicted classes among the 200 trees. Otherwise, the setup is the same as the regression model. Although accuracy is greatly improved to 0.831, notice that accuracy for each class varies. Although predictions are placed into the top price categories, the accuracy within those classes is rather low. Most of the accuracy of the model is earned by the lower two levels.  
 
 
 
+
+
+
+
+# k-NN
 ```{r knn_data_setup, include=FALSE}
 #Preparing Training data
 train<-train[,c(21,2,12,8,14,17,18,20,19)]
@@ -481,6 +458,15 @@ xkabledply(ResultDf, "Total Accuracy Summary")
 
 
 
+## ROC for k-NN
+```{r knn_roc, results='asis'}
+
+knn_prob=attributes(mel_pred)$prob
+test$knn_prob=knn_prob
+h1 <- roc(Price.cuts~knn_prob, data=test)
+auc(h1)
+plot(h1)
+```
 
 
 
@@ -488,11 +474,42 @@ xkabledply(ResultDf, "Total Accuracy Summary")
 
 
 
+# Final Results
+
+## Results for Regression Models
+```{r reg_table, results="asis"}
+
+t.reg <- data.frame(rbind(c("BIC Selection", round(r.2.lm, 2), formatC(mse.lm, format="e", digits=2 )),
+               c("Lasso", round(r.2.lasso_1,2), formatC(mse_lasso_1, format="e", digits=2 )),
+               c("Lasso: Normalized", round(r.2.lasso_2,2), formatC(mse_lasso, format="e", digits=2 )),
+               c("Random Forest", round(r.2.RF,2), formatC(mse.RF), format="e", digits=2 ))[,1:3])
+
+names(t.reg) <- c("Method", "R^2", "MSE")
+xkabledply(t.reg)
+```
 
 
 
+## Accuracy for Classifiers
+```{r class_table, results="asis"}
+
+t.cat <- data.frame(rbind(c("Tree", round(acc.tree, 3)),
+               c("Random Forest", round(acc.RF, 3)),
+               c("13-NN", 0.734)))
+
+names(t.cat) <- c("Method", "Accuracy")
+xkabledply(t.cat)
+```
 
 
+
+# Conclusion
+
+
+
+# Bibliography
+
+Deng, Houtao & Runger, George & Tuv, Eugene. (2011). Bias of Importance Measures for Multi-valued Attributes and Solutions. Lecture Notes in Computer Science. 6792. 293-300. 10.1007/978-3-642-21738-8_38.
 
 ```{r close_stats_libs, include=F}
 # unloadPkg(leaps)
