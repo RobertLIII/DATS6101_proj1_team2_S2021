@@ -220,9 +220,8 @@ The best model is based on five variables: `Distance`, `Rooms`, `Lattitude`, `Bu
 
 
 
-# Regularization
-## Lasso regression
-### Lasso Model
+# Regularization: Lasso regression
+## Lasso Model
 ```{r regularization process for data preparation, include= FALSE}
 # data for trainning model
 train.X <- data.matrix(train[,-which(names(train) %in% c("Price", "Price.cuts"))])
@@ -245,7 +244,7 @@ plot(lasso)
 ```
 
 
-### Coefficients
+## Coefficients
 
 ```{r coef in lasso regression}
 
@@ -257,7 +256,7 @@ min(lasso$cvm)
 From the coefficient of lasso regression model, the variables of `Rooms`, `Type`, `Distance`, `Postcode`,  `Bathroom`, `YearBuilt`, `Lattitude`, and `Longtitude` are related with response variable `Price`.
 
 
-### Lasso Results
+## Lasso Results
 
 ```{r lasso fit, include=TRUE, results='markup'}
 set.seed(999)
@@ -269,7 +268,7 @@ mse_lasso_1 = sum((lasso_pred-exp(test.y))^2)/length(test.y)
 r.2.lasso_1 <- r2(lasso_pred, test$Price)
 ```
 
-### Lasso Prediction
+## Lasso Prediction
 
 ```{r lasso predict, include=TRUE, results='markup'}
 
@@ -485,10 +484,10 @@ t.reg <- data.frame(rbind(c("BIC Selection", round(r.2.lm, 2), formatC(mse.lm, f
                c("Random Forest", round(r.2.RF,2), formatC(mse.RF), format="e", digits=2 ))[,1:3])
 
 names(t.reg) <- c("Method", "R^2", "MSE")
-xkabledply(t.reg)
+xkabledply(t.reg, title=NULL)
 ```
 
-
+The BIC selection mostly confirms the continuous variables that we used in the final linear model for project one. The BIC-chosen model has a testing $R^2$ = 0.45 versus the project one model with $R^2$ = 0.44, marginally worse. Note, however, this is not directly comparable since project one did not have imputed values for missing data as we have here. When we consider the imputed values, the final model from project one has $R^2$ = 0.50 which is likely due to considering a larger subset of variables when making the model. Categorical variables were not included in the BIC selection method. Testing MSE follows a similar pattern ($2.16 \times 10^{11}$ for the imputed project one). As can be seen in the table, lasso regression also did not improve these metrics although it included a larger range of variables.  The best model of those attempted is random forest with a testing proportion of variance explained of $R^2$ = 0.81 and testing MSE = $8.3 \times 10^{10}$, a significant improvement on all regression models. 
 
 ## Accuracy for Classifiers
 ```{r class_table, results="asis"}
@@ -498,7 +497,7 @@ t.cat <- data.frame(rbind(c("Tree", round(acc.tree, 3)),
                c("13-NN", 0.734)))
 
 names(t.cat) <- c("Method", "Accuracy")
-xkabledply(t.cat)
+xkabledply(t.cat, title=NULL)1
 ```
 
 
