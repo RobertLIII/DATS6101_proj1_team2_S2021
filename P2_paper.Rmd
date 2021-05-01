@@ -10,6 +10,12 @@ output:
      number_section: true
 ---
 
+```{r stats_libs, include=F}
+loadPkg("leaps")
+loadPkg("ggplot2")
+loadPkg("caret")
+```
+
 
 
 ```{r setup, include=FALSE}
@@ -27,18 +33,6 @@ options(scipen=9, digits = 3)
 source("general_support.R", local = knitr::knit_global())
 source("P2_support.R", local = knitr::knit_global())
 
-```
-
-
-```{r stats_libs, include=F}
-# loadPkg("leaps")
-# loadPkg("ggplot2")
-# loadPkg("gridExtra")
-# loadPkg("scales")
-# loadPkg("heatmaply")
-# loadPkg("Hmisc")
-# loadPkg("faraway")
-# loadPkg("jtools")
 ```
 
 
@@ -139,12 +133,6 @@ xkablevif = function(model, title="VIFs of the model", digits = 3, pos="left", b
   if (wide) { df <- t(df) }
   xkabledply(df, title=title, digits = digits, pos=pos, bso=bso )    
 }
-```
-
-```{r stats_libs, include=F}
-loadPkg("leaps")
-loadPkg("ggplot2")
-loadPkg("caret")
 ```
 
 
@@ -307,6 +295,11 @@ r.2.lasso_2 <- r2(exp(pred.y), test$Price)
 # Tree and Random Forest 
 
 ## Tree
+
+Decision trees are usually an easily understood way to associate predictors with an outcome variable. The tree is composed of nodes that represent binary choices based on the dataset variables. When the predictor variable is continuous, the binary decision is a cutoff on the interval of the original variable. Unfortunately, factors with many levels may bias the decision tree to include that variable (Deng, 2011). Considering that some of our categorical variable had many levels, this is a concern for our dataset. Furthermore, the `tree()` function in R only allows variables with up to 32 levels so some variables are excluded from consideration (`SellerG`, `Suburb`, `Date`, `Postcode`, `CouncilArea`). Because of the inclusion of these many-leveled factors even with the worst offenders excluded along with the less descriptive coding of levels, another common benefit of trees is lost to us. Usually, decision trees are easily understood visually but the visualization of this tree is not very helpful. Ultimately, this method gives a middling 
+
+An issue more specific to our dataset is the log-normal distribution of the `Price` data. When splitting the variable into categories, the top five categories were condensed into the top two. This allows each price category to have a reasonable number of observations without making the highest category start its interval at a value more reasonably and colloquially described as average. This places a large majority of the observations in the lowest two categories. Hence, the tree model is able to obtain reasonable accuracy (0.704) by only populating predictions within those lower two categories. So, the model is a bit overfitted and has no prediction ability in the higher prices. 
+
 ```{r tree, results='markup'}
 loadPkg("tree")
 loadPkg("pROC")
@@ -322,13 +315,11 @@ acc.tree <- sum(p == test$Price.cuts)/length(p)
 
 cm.tree <- confusionMatrix(p, test$Price.cuts)
 
-cm.tree$table
+xkabledply(cm.tree$table, title=NULL)
 
 ```
 
-Decision trees are usually an easily understood way to associate predictors with an outcome variable. The tree is composed of nodes that represent binary choices based on the dataset variables. When the predictor variable is continuous, the binary decision is a cutoff on the interval of the original variable. Unfortunately, factors with many levels may bias the decision tree to include that variable (Deng, 2011). Considering that some of our categorical variable had many levels, this is a concern for our dataset. Furthermore, the `tree()` function in R only allows variables with up to 32 levels so some variables are excluded from consideration (`SellerG`, `Suburb`, `Date`, `Postcode`, `CouncilArea`). Because of the inclusion of these many-leveled factors even with the worst offenders excluded along with the less descriptive coding of levels, another common benefit of trees is lost to us. Usually, decision trees are easily understood visually but the visualization of this tree is not very helpful. Ultimately, this method gives a middling 
 
-An issue more specific to our dataset is the log-normal distribution of the `Price` data. When splitting the variable into categories, the top five categories were condensed into the top two. This allows each price category to have a reasonable number of observations without making the highest category start its interval at a value more reasonably and colloquially described as average. This places a large majority of the observations in the lowest two categories. Hence, the tree model is able to obtain reasonable accuracy (0.704) by only populating predictions within those lower two categories. So, the model is a bit overfitted and has no prediction ability in the higher prices. 
 
 
 
@@ -476,6 +467,9 @@ plot(h1)
 # Final Results
 
 ## Results for Regression Models
+
+The BIC selection mostly confirms the continuous variables that we used in the final linear model for project one. The BIC-chosen model has a testing $R^2$ = 0.45 versus the project one model with $R^2$ = 0.44, marginally worse. Note, however, this is not directly comparable since project one did not have imputed values for missing data as we have here. When we consider the imputed values, the final model from project one has $R^2$ = 0.50 which is likely due to considering a larger subset of variables when making the model. Categorical variables were not included in the BIC selection method. Testing MSE follows a similar pattern ($2.16 \times 10^{11}$ for the imputed project one). As can be seen in the table, lasso regression also did not improve these metrics although it included a larger range of variables.  The best model of those attempted is random forest with a testing proportion of variance explained of $R^2$ = 0.81 and testing MSE = $8.3 \times 10^{10}$, a significant improvement on all regression models. 
+
 ```{r reg_table, results="asis"}
 
 t.reg <- data.frame(rbind(c("BIC Selection", round(r.2.lm, 2), formatC(mse.lm, format="e", digits=2 )),
@@ -487,9 +481,12 @@ names(t.reg) <- c("Method", "R^2", "MSE")
 xkabledply(t.reg, title=NULL)
 ```
 
-The BIC selection mostly confirms the continuous variables that we used in the final linear model for project one. The BIC-chosen model has a testing $R^2$ = 0.45 versus the project one model with $R^2$ = 0.44, marginally worse. Note, however, this is not directly comparable since project one did not have imputed values for missing data as we have here. When we consider the imputed values, the final model from project one has $R^2$ = 0.50 which is likely due to considering a larger subset of variables when making the model. Categorical variables were not included in the BIC selection method. Testing MSE follows a similar pattern ($2.16 \times 10^{11}$ for the imputed project one). As can be seen in the table, lasso regression also did not improve these metrics although it included a larger range of variables.  The best model of those attempted is random forest with a testing proportion of variance explained of $R^2$ = 0.81 and testing MSE = $8.3 \times 10^{10}$, a significant improvement on all regression models. 
+
 
 ## Accuracy for Classifiers
+
+Project one does not consider classification models; so, no comparisons will be attempted between the projects. Here, we can see that when only considering overall accuracy, the random forest again outperformed the other attempted models. 
+
 ```{r class_table, results="asis"}
 
 t.cat <- data.frame(rbind(c("Tree", round(acc.tree, 3)),
@@ -497,9 +494,8 @@ t.cat <- data.frame(rbind(c("Tree", round(acc.tree, 3)),
                c("13-NN", 0.734)))
 
 names(t.cat) <- c("Method", "Accuracy")
-xkabledply(t.cat, title=NULL)1
+xkabledply(t.cat, title=NULL)
 ```
-
 
 
 # Conclusion
