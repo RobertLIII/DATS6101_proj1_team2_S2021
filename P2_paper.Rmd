@@ -153,6 +153,9 @@ test <- load_data(F)
 
 
 ## Dataset
+
+We are using the same data as our last project to predict price as both a continuous and categorical variable. We have variables describing location, construction details, and sales data attributes with approximately 13,000 observations. Some of our categorical variables have many levels, even hundreds. Likewise, some of the levels are even unique which make them impractical as predictors. We randomly selected 70% of the dataset as training and the remainder as testing. 
+
 - Home Sales in 2017
   - Location
   - Construction
@@ -161,9 +164,46 @@ test <- load_data(F)
   - Numeric: 12
   - Categorical: 8
   
+Rooms: Number of rooms
+                                                                                          
+Price: Price (AUS$)
+
+Method: Method of sale - 5 categories      
+
+Type:  House, Unit, Townhouse - 3 categories   
+
+SellerG: Real Estate Agent - 268 categories             
+
+Date: Date sold                                                                                 
+
+Distance: Distance from Central Business District
+
+Regionname: Region name - 8 categories
+
+Propertycount: Number of properties that exist in the suburb
+                                                                    
+Bedroom2 : Number of Bedrooms                              
+                                                        
+Bathroom: Number of Bathrooms                                                                                                    
+
+Car: Number of carspots                                                                                                   
+
+Landsize: Land Size                             
+
+BuildingArea: Building Size
+
+YearBuilt: Year home built
+
+CouncilArea: Governing council for the area - 34 categories
+
+Lattitude, Longtitude: GPS location
+
+Suburb: Suburb name - 314 categories                        
 
 
 ## Exploratory Data Analysis
+
+We have a more in-depth exploratory data analysis in our first project. One of the more important things to note from that first analysis is that the `Price` data is log-normal which is supported by hypothesis testing. Note that we are only showing the testing set here but using the whole set just reveals the same pattern as can be seen in project one. 
 
 ```{r eda, results='markup'}
 hist(test$Price)
@@ -172,10 +212,9 @@ hist(test$Price)
 
 ## New for Project 2
 
-Created 5 `Price` based categories
+We used the same `Price` categories (`Price.cuts`) that we introduced in project one. At that time, we created 10 categories of equally sized intervals of `Price` but because `Price` is log-normal and most prices are therefore in the lowest categories, we condensed the top five price category levels into the top two. This allowed us to have a reasonable number of observations in each level while having reasonably sized intervals. Although we did this in project one, we never actually modeled using this category but only used them for independence hypothesis testing. 
 
-Imputed missing data based on suburb
-
+Also, new to this project, we imputed missing data. Luckily, we were only missing data from a few numerical variables. So, we used the mean of the suburb to impute. Unfortunately, some suburbs were unique within the dataset and in that case we simply used the mean for the entire variable. Fortunately, there were not too many cases of this.
 
 
 
@@ -342,7 +381,7 @@ r.2.RF <- r2(p.RF_reg, test$Price)
 mse.RF <- mean((p.RF_reg - test$Price)^2)
 ```
 
-One way to minimize the overfitting of the single tree model to create many trees and take the mean of the outputs predicted from each tree. This is called a random forest model. For our project, we created a random forest that uses 200 trees and 5 variables per tree. Again, the `randomForest()` function in R limits the levels of factors at 53; so (`SellerG`, `Suburb`, `Date`, `Postcode`) are excluded. This greatly improved prediction variance explained ($R^2$ = 0.809) on the test set from previous attempts. Likewise, MSE also improved. 
+One way to minimize the overfitting of the single tree model to create many trees and take the mean of the outputs predicted from each tree. This is called a random forest model. For our project, we created a random forest that uses 200 trees and 5 variables per tree. Again, the `randomForest()` function in R limits the levels of factors at 53; so (`SellerG`, `Suburb`, `Date`, `Postcode`) are excluded. This greatly improved prediction variance explained ($R^2$ = 0.809) on the test set from previous attempts. Likewise, MSE also improved by roughly 10 times. 
 
 ### Random Forest: Categorical
 
@@ -468,7 +507,7 @@ plot(h1)
 
 ## Results for Regression Models
 
-The BIC selection mostly confirms the continuous variables that we used in the final linear model for project one. The BIC-chosen model has a testing $R^2$ = 0.45 versus the project one model with $R^2$ = 0.44, marginally worse. Note, however, this is not directly comparable since project one did not have imputed values for missing data as we have here. When we consider the imputed values, the final model from project one has $R^2$ = 0.50 which is likely due to considering a larger subset of variables when making the model. Categorical variables were not included in the BIC selection method. Testing MSE follows a similar pattern ($2.16 \times 10^{11}$ for the imputed project one). As can be seen in the table, lasso regression also did not improve these metrics although it included a larger range of variables.  The best model of those attempted is random forest with a testing proportion of variance explained of $R^2$ = 0.81 and testing MSE = $8.3 \times 10^{10}$, a significant improvement on all regression models. 
+The BIC selection mostly confirms the continuous variables that we used in the final linear model for project one. The BIC-chosen model has a testing $R^2$ = 0.45 versus the project one model with $R^2$ = 0.44, marginally worse. Note, however, this is not directly comparable since project one did not have imputed values for missing data as we have here. When we consider the imputed values, the final model from project one has $R^2$ = 0.50 which is likely due to considering a larger subset of variables when making the model. Categorical variables were not included in the BIC selection method. Testing MSE follows a similar pattern ($2.16 \times 10^{11}$ for the imputed project one). As can be seen in the table, lasso regression also did not improve these metrics although it included a larger range of variables.  The best model of those attempted is random forest with a testing proportion of variance explained of $R^2$ = 0.81 and testing MSE = $8.3 \times 10^{10}$, a significant improvement on all regression models. Also, note that these are not true $R^2$ values as one would normally get when performing OLS regression but simply the proportion of variance explained by the model given the testing data. For this reason, MSE may be the better unbiased metric for comparison. 
 
 ```{r reg_table, results="asis"}
 
