@@ -10,12 +10,6 @@ output:
      number_section: true
 ---
 
-```{r stats_libs, include=F}
-loadPkg("leaps")
-loadPkg("ggplot2")
-loadPkg("caret")
-```
-
 
 
 ```{r setup, include=FALSE}
@@ -34,15 +28,6 @@ source("general_support.R", local = knitr::knit_global())
 source("P2_support.R", local = knitr::knit_global())
 
 ```
-
-
-```{r data, include=F}
-
-train <- load_data()
-test <- load_data(F)
-
-```
-
 
 
 
@@ -133,6 +118,12 @@ xkablevif = function(model, title="VIFs of the model", digits = 3, pos="left", b
   if (wide) { df <- t(df) }
   xkabledply(df, title=title, digits = digits, pos=pos, bso=bso )    
 }
+```
+
+```{r stats_libs, include=F}
+loadPkg("leaps")
+loadPkg("ggplot2")
+loadPkg("caret")
 ```
 
 
@@ -561,12 +552,14 @@ Mohd, T., Jamil, N. S., Johari, N., Abdullah, L., & Masrom, S. (2020). An overvi
 
 Tibshirani, R. (1996). Regression shrinkage and selection via the lasso. Journal of the Royal Statistical Society: Series B (Methodological), 58(1), 267-288.
 ```{r close_stats_libs, include=F}
-# unloadPkg(leaps)
-# unloadPkg(ggplot2)
-# unloadPkg(gridExtra)
-# unloadPkg(scales)
-# unloadPkg(heatmaply)
-# unloadPkg(Hmisc)
-# unloadPkg(faraway)
-# unloadPkg(jtools)
+unloadPkg(leaps)
+unloadPkg(ggplot2)
+unloadPkg(caret)
+unloadPkg(FNN)
+unloadPkg(pROC)
+unloadPkg(randomForest)
+unloadPkg(tree)
+unloadPkg(fastDummies)
+unloadPkg(dplyr)
+unloadPkg(glmnet)
 ```
