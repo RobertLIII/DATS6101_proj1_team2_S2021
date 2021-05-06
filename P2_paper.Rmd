@@ -260,6 +260,7 @@ test.y <- data.matrix(log(test$Price))
 
 ```
 
+Regularization is to reduce the complexity of the model by adjusting the model parameters (number and size) to achieve the effect of avoiding overfitting. The most basic regularization method is to add a penalty term to the original target (cost) function to punish the model with high complexity. The regression problem is a process of function fitting. We hope that the model should not be too complicated, otherwise it is prone to overfitting. So we need to add a regularization term, and different regularization terms produce different regression methods. Lasso adds an L1 regularization term. L1 regularization can generate a sparse weight matrix, that is, a sparse model can be used for feature selection. To a certain extent, L1 can also prevent overfitting (Tibshirani, R. 1996).
 
 ```{r lasso, results='markup'}
 loadPkg("glmnet")
@@ -270,7 +271,7 @@ plot(lasso)
 
 ```
 
-
+Using cross-validation to select lambda, indicates that the unregularized model does a good job and that within one standard error at nine variables is also a good choice. The plot shows how many non-zero variables are in the model at the top. When the log lambda value belongs to -3 and -2, the no-zero variable is between 9 and 8. Indeed the values of the coefficients for the best model of nine variables can be extracted.
 ## Coefficients
 
 ```{r coef in lasso regression}
@@ -295,6 +296,7 @@ mse_lasso_1 = sum((lasso_pred-exp(test.y))^2)/length(test.y)
 r.2.lasso_1 <- r2(lasso_pred, test$Price)
 ```
 
+This is the predicted distribution of different price ranges after prediction. Among them, it is mainly concentrated in 600,000 to 1,200,000.
 ## Lasso Prediction
 
 ```{r lasso predict, include=TRUE, results='markup'}
@@ -308,6 +310,7 @@ abline(0,1)
 
 ```
 
+An issue is that the function of normalized are influencing the accuracy of prediction price. It can be seen from the non-normalized prediction results that the error between the predicted value and the actual value is relatively large, and the corresponding fitting curve between the overall predicted data and the true value is a non-proportional function curve.
 
 ## Lasso Results: Normalized
 
@@ -327,6 +330,7 @@ r.2.lasso_2 <- r2(exp(pred.y), test$Price)
 ```
 
 
+Combining the distribution of the predicted value with the real one, it can be known that the normalized prediction accuracy is higher than the non-normalized prediction.
 
 
 
@@ -547,6 +551,7 @@ Deng, Houtao & Runger, George & Tuv, Eugene. (2011). Bias of Importance Measures
 
 Mohd, T., Jamil, N. S., Johari, N., Abdullah, L., & Masrom, S. (2020). An overview of real estate modelling techniques for house price prediction. Charting a Sustainable Future of ASEAN in Business and Social Sciences, 321-338. doi:10.1007/978-981-15-3859-9_28
 
+Tibshirani, R. (1996). Regression shrinkage and selection via the lasso. Journal of the Royal Statistical Society: Series B (Methodological), 58(1), 267-288.
 ```{r close_stats_libs, include=F}
 # unloadPkg(leaps)
 # unloadPkg(ggplot2)
