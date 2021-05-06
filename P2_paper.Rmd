@@ -146,11 +146,19 @@ test <- load_data(F)
 ```
 # Introduction
 
+Housing prices are an important indicator of the strength of the economy. House price prediction can help real estate developers determine the selling price of a house, allow buyers make informed choices about potential purchases, and be beneficial for property investors in determining price trends across different locations. 
+Hence having a simple predictive and inferential method to model housing prices can be of great significance to the financial market; however, predicting long-term housing prices has become a complex and challenging task. 
+In project one, we do this by determining how different factors may affect home sales price by building linear models. This time, we attempt to improve on those linear models and create some classification models. 
+The data used in this project was collected in Melbourne, Australia in 2017. 
+Melbourne is a large metropolitan city with a strong real estate market in a region of Australia that experienced a 4.2 percent growth rate in property sales 2017. 
+We believe the factors that determine housing pricing in our model could have broad applications to other locations and countries.
+ 
+Our project sought to answer the following questions:
 
-## Goals
-1.	Understand which attributes of a home and its sale determine final sale price
-2.	Attempt to build a reasonable model for inference and/or prediction for final sale price
-
+- Understand if housing prices in Melbourne, Australia can be predicted using this dataset.
+- Determine what variables have the greatest impact on housing price.
+- Analyze the impacts of location, seller, and construction attributes of homes on the housing market in Melbourne, Australia.
+- Improve on our results from project one. 
 
 ## Dataset
 
