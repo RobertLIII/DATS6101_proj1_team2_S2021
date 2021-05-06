@@ -10,11 +10,7 @@ output:
      number_section: true
 ---
 
-```{r stats_libs, include=F}
-loadPkg("leaps")
-loadPkg("ggplot2")
-loadPkg("caret")
-```
+
 
 
 
@@ -36,12 +32,6 @@ source("P2_support.R", local = knitr::knit_global())
 ```
 
 
-```{r data, include=F}
-
-train <- load_data()
-test <- load_data(F)
-
-```
 
 
 
@@ -135,6 +125,11 @@ xkablevif = function(model, title="VIFs of the model", digits = 3, pos="left", b
 }
 ```
 
+```{r stats_libs, include=F}
+loadPkg("leaps")
+loadPkg("ggplot2")
+loadPkg("caret")
+```
 
 
 ```{r data, include=F}
@@ -249,7 +244,7 @@ r.2.lm <- r2(p.lm, test$Price)
 
 mse.lm <- mean((p.lm - test$Price)^2)
 ```
-The Bayesian Information Criterion, or BIC for short, is a method for selecting a model. Lower BIC is best for model, so I selected the top five variables among all variables in the graph. The best model includes five variables: `Distance`, `Rooms`, `Lattitude`, `BuildingArea`, `YearBuilt` 
+The Bayesian Information Criterion, or BIC for short, is a method for selecting a model. Lower BIC is best for model, so I selected the top five variables among all variables in the graph. The best model includes five variables: `Distance`, `Rooms`, `Lattitude`, `BuildingArea`, `YearBuilt`. 
 
 
 
@@ -406,7 +401,7 @@ p <- predict(mod.RF.cat, test)
 
 acc.RF <- sum(p == test$Price.cuts, na.rm=T)/length(p)
 
-mod.RF.cat$confusion
+xkabledply(mod.RF.cat$confusion)
 
 ```
 
@@ -559,13 +554,20 @@ Deng, Houtao & Runger, George & Tuv, Eugene. (2011). Bias of Importance Measures
 Mohd, T., Jamil, N. S., Johari, N., Abdullah, L., & Masrom, S. (2020). An overview of real estate modelling techniques for house price prediction. Charting a Sustainable Future of ASEAN in Business and Social Sciences, 321-338. doi:10.1007/978-981-15-3859-9_28
 
 Tibshirani, R. (1996). Regression shrinkage and selection via the lasso. Journal of the Royal Statistical Society: Series B (Methodological), 58(1), 267-288.
+
 ```{r close_stats_libs, include=F}
-# unloadPkg(leaps)
-# unloadPkg(ggplot2)
-# unloadPkg(gridExtra)
-# unloadPkg(scales)
-# unloadPkg(heatmaply)
-# unloadPkg(Hmisc)
-# unloadPkg(faraway)
-# unloadPkg(jtools)
+unloadPkg(leaps)
+unloadPkg(tree)
+unloadPkg(caret)
+unloadPkg(randomForest)
+unloadPkg(dplyr)
+unloadPkg(glmnet)
+unloadPkg(FNN)
+unloadPkg(caret)
+unloadPkg(pROC)
+unloadPkg(fastDummies)
+unloadPkg(xtable)
+unloadPkg(kableExtra)
+unloadPkg(stringi)
+unloadPkg(ggplot2)
 ```
